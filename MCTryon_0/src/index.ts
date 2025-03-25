@@ -172,7 +172,7 @@ async function main() {
         engine.addRenderer(renderer),
         engine.init({ token: token })
     ]);
-    await engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear }); // Updated to use transpose variable
+    await engine.setup({ size: { width: 1920, height: 1080 }, transpose: false, rear }); // Updated to use transpose variable
     await engine.start();
     document.getElementById("loadui")?.remove();
 }
