@@ -15,8 +15,8 @@ export class AvatarRenderer extends PoseRenderer {
     protected model?: three.Group;
     protected light?: three.PointLight;
     protected ambient?: three.AmbientLight;
-    readonly lightInt: number = 0.75;
-    readonly ambientInt: number = 1.25;
+    readonly lightInt: number = 100.75;
+    readonly ambientInt: number = 1.0;
     // Hands up
     protected handsUp = false;
     protected textModel?: three.Group;
@@ -46,13 +46,14 @@ export class AvatarRenderer extends PoseRenderer {
         // Model
         await this.setModel(this.url);
         // Lightning
-        this.light = new three.PointLight(0xFFFFFF, this.lightInt);
+        this.light = new three.PointLight(0xFFFFFF, this.lightInt, 100);
+        this.light.position.set(0, 0, 3);
+        //this.light.castShadow = true;
         this.ambient = new three.AmbientLight(0xFFFFFF, this.ambientInt);
         scene.add(this.light);
         scene.add(this.ambient);
         // Environment
         const environment = await new RGBELoader().loadAsync("environment.hdr");
-        environment.mapping = three.EquirectangularReflectionMapping;
         scene.environment = environment;
         // Text model
         const font = await new FontLoader().loadAsync("font.json");

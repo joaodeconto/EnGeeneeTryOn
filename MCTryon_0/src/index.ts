@@ -2,6 +2,10 @@ import { PoseEngine } from "@geenee/bodyprocessors";
 import { Recorder } from "@geenee/armature";
 import { OutfitParams } from "@geenee/bodyrenderers-common";
 import { AvatarRenderer } from "./avatarrenderer";
+import { MaskEngine} from "@geenee/bodyprocessors";
+
+// make a segmentation mask
+
 
 // Engine
 const engine = new PoseEngine();
@@ -11,6 +15,7 @@ const token = location.hostname === "localhost" ?
 // Parameters
 const urlParams = new URLSearchParams(window.location.search);
 let rear = urlParams.has("rear");
+let transpose = true; // Added variable to track transpose state
 // Model map
 const modelMap: {
     [key: string]: {
@@ -81,12 +86,23 @@ async function main() {
         cameraSwitch.onclick = async () => {
             cameraSwitch.disabled = true;
             rear = !rear;
-            await engine.setup({ size: { width: 1920, height: 1080 }, rear });
+            await engine.setup({ size: { width: 1920, height: 1080 },transpose, rear });
             await engine.start();
             renderer.setMirror(!rear);
             cameraSwitch.disabled = false;
         }
     }
+    // Transpose toggle button
+    const transposeButton = document.getElementById(
+        "orientation") as HTMLButtonElement | null;
+    if (transposeButton)
+        transposeButton.onclick = async () => {
+        transpose = !transpose; // Toggle transpose state
+        await engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
+        await engine.start();
+        console.log(`Transpose set to: ${transpose}`);
+    };
+
     // Outfit switch
     const outfitSwitch = document.getElementById(
         "outfit-switch") as HTMLInputElement;
@@ -150,12 +166,13 @@ async function main() {
             }
         };
     });
+    
     // Initialization
     await Promise.all([
         engine.addRenderer(renderer),
         engine.init({ token: token })
     ]);
-    await engine.setup({ size: { width: 1920, height: 1080 }, rear });
+    await engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear }); // Updated to use transpose variable
     await engine.start();
     document.getElementById("loadui")?.remove();
 }
