@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon.ico"/>
+    <link rel="apple-touch-icon" href="logo192.png" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="./src/index.css">
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <script type="module" src="./src/index.ts"></script>
+    <div id="loadui" class="full-screen loadui">
+        <h4>powered by</h4>
+        <h2>GEENEE</h3>
+        <div style="flex-grow: 1; align-content: center;">
+            <div class="cube-container">
+                <div class="cube">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+            <p>Virtual try-on is loading</p>
+            <p>This may take a moment</p>
+        </div>
+    </div>
+    <div id="root" class="full-screen"></div>
+    <button id="camera-switch" class="button"
+        style="position: absolute; top: 0.5rem; right: 0.5rem; z-index: 1;"
+    >
+        <div class="icon" style="mask:url(./switch.svg);"></div>
+    </button>
+    <button id="record" class="button"
+        style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 1;"
+    >
+        <div class="icon" style="mask:url(./shot.svg);"></div>
+    </button>
+    <input type="checkbox" id="outfit-switch" class="button checkbox"
+        style="position: absolute; top: 3.5rem; right: 0.5rem; z-index: 1;"
+    ></input>
+    <div id="courosel" class="carousel">
+        <input type="radio" name="model" value="polo" class="carousel-item"
+            style="background-image: url(./public/Neutral/Square_Neutral_Polo.png);" checked=true></input>
+
+        <input type="radio" name="model" value="tee" class="carousel-item"
+            style="background-image: url(./public/Neutral/Square_Neutral_Tee.png);"></input>
+
+        <input type="radio" name="model" value="quarter" class="carousel-item"
+            style="background-image: url(./public/Neutral/Square_Neutral_Zip.png);"></input>
+            
+        <input type="radio" name="model" value="noCloth" class="carousel-item"
+            style="background-image: url(./public/Neutral/No_Shirt_Neutral.png);"></input>
+    </div>
+  </body>
+</html>

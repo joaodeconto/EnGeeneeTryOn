@@ -1,0 +1,35 @@
+{
+  "name": "pose-three",
+  "version": "0.7.3",
+  "private": true,
+  "title": "Pose Tracking Demo",
+  "description": "Geenee pose tracking demo",
+  "dependencies": {
+    "@geenee/bodyrenderers-three": "^0.7.3",
+    "three": "^0.168.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.161.2",
+    "copyfiles": "^2.4.1",
+    "vite": "^5.3.5"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "postinstall": "npm run post:wasm",
+    "post:wasm": "copyfiles -f \"node_modules/@geenee/bodytracking/dist/*.wasm\" public/"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

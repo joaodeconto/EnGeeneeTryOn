@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "allowJs": true,
+        "noFallthroughCasesInSwitch": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "incremental": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "removeComments": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "moduleResolution": "node",
+        "target": "es6",
+        "module": "esnext",
+        "lib": ["esnext", "webworker", "dom", "dom.iterable"]
+    },
+    "buildOptions": {
+        "incremental": true
+    }
+}
