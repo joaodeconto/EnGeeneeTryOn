@@ -142,7 +142,7 @@ async function main() {
 
         engine.addRenderer(renderer),
         engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
-        engine.init({token: token, mask: true})
+        engine.init({token: token, mask: {smooth: true}})
     ]);
     transpose = false; // Set transpose to false initially
     
