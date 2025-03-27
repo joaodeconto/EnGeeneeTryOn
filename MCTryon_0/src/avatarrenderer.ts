@@ -1,25 +1,33 @@
 
-import { PoseRenderer, PoseOutfitPlugin } from "@geenee/bodyrenderers-three";
-import { OutfitParams } from "@geenee/bodyrenderers-common";
+import { PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
+import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin} from "@geenee/bodyrenderers-common";
+import { BgReplacePlugin, BgBlurPlugin, BrightnessPlugin } from "@geenee/bodyrenderers-common";
+import { PoseTuneParams, OutfitParams } from "@geenee/bodyrenderers-common";
 import { PoseResult } from "@geenee/bodyprocessors";
 import * as three from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
-import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
+
 
 // Renderer
 export class AvatarRenderer extends PoseRenderer {
     // Scene
-    protected plugin: PoseOutfitPlugin;
+    protected poseOutfitPlugin: PoseOutfitPlugin;
+    protected poseAlignPlugin: PoseAlignPlugin;
+    protected maskUpscalePlugin: MaskUpscalePlugin; // Add mask upscale plugin
+    protected maskSmoothPlugin: MaskSmoothPlugin; // Add mask plugin
+    protected maskUploadPlugin: MaskUploadPlugin; // Add mask upload plugin
+    protected maskErosionPlugin: MaskErosionPlugin; // Add mask erosion plugin
+
+    protected bgBlur: BgBlurPlugin; // Add blur plugin
+    protected bgReplace: BgReplacePlugin; // Add background replace plugin
+    protected brightness: BrightnessPlugin; // Add brightness plugin
+
     protected model?: three.Group;
     protected light?: three.PointLight;
     protected ambient?: three.AmbientLight;
     readonly lightInt: number = 100.75;
     readonly ambientInt: number = 1.0;
-    // Hands up
-    protected handsUp = false;
-    protected textModel?: three.Group;
 
     // Constructor
     constructor(
@@ -27,10 +35,42 @@ export class AvatarRenderer extends PoseRenderer {
         mode?: "fit" | "crop",
         mirror?: boolean,
         protected url = "./public/Models/polo.glb",
-        protected outfit?: OutfitParams) {
+        protected outfit?: OutfitParams,
+        protected tuneParams?: PoseTuneParams,
+        ) 
+        
+        {
         super(container, mode, mirror);
-        this.plugin = new PoseOutfitPlugin(undefined, outfit);
-        this.addPlugin(this.plugin);
+
+        this.brightness = new BrightnessPlugin();
+        this.addPlugin(this.brightness);
+
+        this.poseOutfitPlugin = new PoseOutfitPlugin(undefined, outfit);        
+        this.addPlugin(this.poseOutfitPlugin);
+
+        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true, shoulderOffset: 0, spineCurve: 0});
+        this.addPlugin(this.poseAlignPlugin);        
+
+        this.maskUploadPlugin = new MaskUploadPlugin();
+        this.addPlugin(this.maskUploadPlugin);        
+        
+        this.maskUpscalePlugin = new MaskUpscalePlugin(.01,4);
+        //this.addPlugin(this.maskUpscalePlugin);
+        
+        this.maskErosionPlugin = new MaskErosionPlugin(15);
+        //this.addPlugin(this.maskErosionPlugin);
+
+        this.maskSmoothPlugin = new MaskSmoothPlugin(10);
+        //this.addPlugin(this.maskSmoothPlugin);        
+
+        this.bgBlur = new BgBlurPlugin(10, .6);
+        this.addPlugin(this.bgBlur);
+        
+        this.bgReplace = new BgReplacePlugin();
+        //this.addPlugin(this.bgReplace);
+        
+
+
     }
 
     // Load assets and setup scene
@@ -45,6 +85,7 @@ export class AvatarRenderer extends PoseRenderer {
     protected async setupScene(scene: three.Scene) {
         // Model
         await this.setModel(this.url);
+        
         // Lightning
         this.light = new three.PointLight(0xFFFFFF, this.lightInt, 100);
         this.light.position.set(0, 0, 3);
@@ -54,30 +95,7 @@ export class AvatarRenderer extends PoseRenderer {
         scene.add(this.ambient);
         // Environment
         const environment = await new RGBELoader().loadAsync("environment.hdr");
-        scene.environment = environment;
-        // Text model
-        const font = await new FontLoader().loadAsync("font.json");
-        const geometry = new TextGeometry("HOORAY!!!", {
-            font: font, size: 5, height: 2,
-            bevelSize: 0.3, bevelThickness: 1,
-            bevelSegments: 10, bevelEnabled: true
-        });
-        // Center model
-        geometry.scale(0.01, 0.01, 0.01);
-        geometry.computeBoundingBox();
-        const box = geometry.boundingBox;
-        if (box)
-            geometry.translate(...box.max.sub(box.min).
-                multiplyScalar(-0.5).toArray());
-        geometry.rotateY(Math.PI);
-        const mesh = new three.Mesh(geometry, [
-            new three.MeshStandardMaterial({ color: 0x3BDB9B, flatShading: true }),
-            new three.MeshStandardMaterial({ color: 0x3BDB9B })
-        ]);
-        this.textModel = new three.Group();
-        this.textModel.visible = false;
-        this.textModel.add(mesh);
-        this.scene?.add(this.textModel);
+        scene.environment = environment;        
     }
 
     // Set model to render
@@ -95,7 +113,8 @@ export class AvatarRenderer extends PoseRenderer {
         const gltf = await new GLTFLoader().loadAsync(url);
         this.model = gltf.scene;
         this.scene?.add(this.model);
-        this.plugin.setOutfit(this.model, outfit);
+        this.poseOutfitPlugin.setOutfit(this.model, outfit);
+        this.poseAlignPlugin.setNode(this.model);
     }
 
     // Update
@@ -103,45 +122,7 @@ export class AvatarRenderer extends PoseRenderer {
         // Analyze pose keypoints to detect hands up
         const pose = result.poses[0];
         if (!pose) {
-            this.handsUp = false;
             return super.update(result, stream);
-        }
-        // Keypoints
-        const { points } = pose;
-        const hipL = new three.Vector3(...points.hipL.metric);
-        const hipR = new three.Vector3(...points.hipR.metric);
-        const shoulderL = new three.Vector3(...points.shoulderL.metric);
-        const shoulderR = new three.Vector3(...points.shoulderR.metric);
-        const elbowL = new three.Vector3(...points.elbowL.metric);
-        const elbowR = new three.Vector3(...points.elbowR.metric);
-        const wristL = new three.Vector3(...points.wristL.metric);
-        const wristR = new three.Vector3(...points.wristR.metric);
-        // Arm vectors
-        const torsoL = shoulderL.clone().sub(hipL).normalize();
-        const torsoR = shoulderR.clone().sub(hipR).normalize();
-        const armL = elbowL.clone().sub(shoulderL).normalize();
-        const armR = elbowR.clone().sub(shoulderR).normalize();
-        const foreArmL = wristL.clone().sub(elbowL).normalize();
-        const foreArmR = wristR.clone().sub(elbowR).normalize();
-        // Dot product of unit vectors gives cos of angle between
-        // If vectors are parallel, angle is close to 0, cos to 1
-        const armLCos = torsoL.dot(armL);
-        const armRCos = torsoR.dot(armR);
-        const foreArmLCos = foreArmL.dot(armL);
-        const foreArmRCos = foreArmR.dot(armR);
-        // Hands are up if all vectors have almost the same direction
-        // Add hysteresis when changing mouth state to reduce noise
-        const cosMin = Math.min(armLCos, armRCos, foreArmLCos, foreArmRCos);
-        if (cosMin > 0.8)
-            this.handsUp = true;
-        if (cosMin < 0.7)
-            this.handsUp = false;
-        // Position text model
-        const { textModel } = this;
-        if (textModel) {
-            const position = wristL.clone().lerp(wristR, 0.5);
-            textModel.position.copy(position);
-            textModel.visible = this.handsUp;
         }
         await super.update(result, stream);
     }

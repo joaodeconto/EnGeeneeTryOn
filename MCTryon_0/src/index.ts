@@ -2,13 +2,9 @@ import { PoseEngine } from "@geenee/bodyprocessors";
 import { Recorder } from "@geenee/armature";
 import { OutfitParams } from "@geenee/bodyrenderers-common";
 import { AvatarRenderer } from "./avatarrenderer";
-import { MaskEngine} from "@geenee/bodyprocessors";
 
-// make a segmentation mask
-
-
-// Engine
 const engine = new PoseEngine();
+
 const token = location.hostname === "localhost" ?
     "JWHEn64uKNrekP5S8HSUBYrg5JPzYN8y" : "prod.url_sdk_token";
 
@@ -45,7 +41,7 @@ const modelMap: {
         }
     },
     noCloth: {
-        file: "onesie.glb", avatar: false,
+        file: "./public/Models/base.glb", avatar: false,
         outfit: {
             occluders: [/Head$/, /Body/],
             hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Headwear/]
@@ -77,21 +73,13 @@ async function main() {
     if (!container)
         return;
     const renderer = new AvatarRenderer(
-        container, "crop", !rear, modelMap[model].file,
-        avatar ? undefined : modelMap[model].outfit);
-    // Camera switch
-    const cameraSwitch = document.getElementById(
-        "camera-switch") as HTMLButtonElement | null;
-    if (cameraSwitch) {
-        cameraSwitch.onclick = async () => {
-            cameraSwitch.disabled = true;
-            rear = !rear;
-            await engine.setup({ size: { width: 1920, height: 1080 },transpose, rear });
-            await engine.start();
-            renderer.setMirror(!rear);
-            cameraSwitch.disabled = false;
-        }
-    }
+        container,
+        "crop",
+        !rear,
+        modelMap[model].file,
+        avatar ? undefined : modelMap[model].outfit
+    );
+
     // Transpose toggle button
     const transposeButton = document.getElementById(
         "orientation") as HTMLButtonElement | null;
@@ -103,23 +91,7 @@ async function main() {
         console.log(`Transpose set to: ${transpose}`);
     };
 
-    // Outfit switch
-    const outfitSwitch = document.getElementById(
-        "outfit-switch") as HTMLInputElement;
-    outfitSwitch.checked = avatar;
-    outfitSwitch.onchange = async () => {
-        modelBtns.forEach((btn) => { btn.disabled = true; })
-        outfitSwitch.disabled = true;
-        const spinner = createSpinner();
-        document.body.appendChild(spinner);
-        avatar = outfitSwitch.checked;
-        await renderer.setOutfit(
-            modelMap[model].file,
-            avatar ? undefined : modelMap[model].outfit);
-        document.body.removeChild(spinner);
-        modelBtns.forEach((btn) => { btn.disabled = false; });
-        outfitSwitch.disabled = false;
-    }
+
     // Recorder
     const safari = navigator.userAgent.indexOf('Safari') > -1 &&
                    navigator.userAgent.indexOf('Chrome') <= -1
@@ -144,6 +116,7 @@ async function main() {
                 URL.revokeObjectURL(url);
             }, 10000);
         };
+        
     // Model carousel
     const modelBtns = document.getElementsByName(
         "model") as NodeListOf<HTMLInputElement>;
@@ -151,7 +124,6 @@ async function main() {
         btn.onchange = async () => {
             if (btn.checked && modelMap[btn.value]) {
                 modelBtns.forEach((btn) => { btn.disabled = true; })
-                outfitSwitch.disabled = true;
                 const spinner = createSpinner();
                 document.body.appendChild(spinner);
                 model = btn.value;
@@ -159,21 +131,24 @@ async function main() {
                 await renderer.setOutfit(
                     modelMap[model].file,
                     avatar ? undefined : modelMap[model].outfit);
-                outfitSwitch.checked = avatar;
                 document.body.removeChild(spinner);
                 modelBtns.forEach((btn) => { btn.disabled = false; });
-                outfitSwitch.disabled = false;
             }
         };
     });
     
     // Initialization
     await Promise.all([
+
         engine.addRenderer(renderer),
-        engine.init({ token: token })
+        engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
+        engine.init({token: token, mask: true})
     ]);
-    await engine.setup({ size: { width: 1920, height: 1080 }, transpose: false, rear }); // Updated to use transpose variable
+    transpose = false; // Set transpose to false initially
+    
+    await engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear }); 
     await engine.start();
+
     document.getElementById("loadui")?.remove();
 }
 main();
