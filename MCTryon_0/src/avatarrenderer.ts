@@ -1,8 +1,9 @@
 
 import { PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
-import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin} from "@geenee/bodyrenderers-common";
+import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin, MaskMorphPlugin} from "@geenee/bodyrenderers-common";
 import { BgReplacePlugin, BgBlurPlugin, BrightnessPlugin, BodyPatchPlugin, BilateralPlugin } from "@geenee/bodyrenderers-common";
 import { PoseTuneParams, OutfitParams } from "@geenee/bodyrenderers-common";
+import { ImageTexture } from "@geenee/armature";
 import { PoseResult } from "@geenee/bodyprocessors";
 import * as three from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -18,12 +19,15 @@ export class AvatarRenderer extends PoseRenderer {
     protected maskSmoothPlugin: MaskSmoothPlugin; // Add mask plugin
     protected maskUploadPlugin: MaskUploadPlugin; // Add mask upload plugin
     protected maskErosionPlugin: MaskErosionPlugin; // Add mask erosion plugin
+    protected maskMorphPlugin: MaskMorphPlugin; // Add mask
 
     protected bgBlur: BgBlurPlugin; // Add blur plugin
     protected bgReplace: BgReplacePlugin; // Add background replace plugin
     protected bodyPatch: BodyPatchPlugin; // Add body patch plugin
     protected bilateral: BilateralPlugin; // Add bilateral plugin
     protected brightness: BrightnessPlugin; // Add brightness plugin
+
+    protected bgImageTexture?: ImageTexture;
 
     protected model?: three.Group;
     protected light?: three.PointLight;
@@ -50,7 +54,7 @@ export class AvatarRenderer extends PoseRenderer {
         this.poseOutfitPlugin = new PoseOutfitPlugin(undefined, outfit);        
         this.addPlugin(this.poseOutfitPlugin);
 
-        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true, shoulderOffset: 0, spineCurve: 0});
+        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true, shoulderOffset: 0.2, spineCurve: 0});
         this.addPlugin(this.poseAlignPlugin);        
 
         this.maskUploadPlugin = new MaskUploadPlugin();
@@ -66,17 +70,23 @@ export class AvatarRenderer extends PoseRenderer {
         this.maskErosionPlugin = new MaskErosionPlugin(15);
         //this.addPlugin(this.maskErosionPlugin);
 
+        this.maskMorphPlugin = new MaskMorphPlugin(1);
+        //this.addPlugin(this.maskMorphPlugin);
+
         this.maskSmoothPlugin = new MaskSmoothPlugin(10);
         //this.addPlugin(this.maskSmoothPlugin);        
 
-        this.bgBlur = new BgBlurPlugin(10, .9);
+        this.bgBlur = new BgBlurPlugin(10, .5);
         this.addPlugin(this.bgBlur);
         
-        this.bgReplace = new BgReplacePlugin();
-        //this.addPlugin(this.bgReplace);      
         
+        this.bgReplace = new BgReplacePlugin(0.4, 0.6, false);
+        //this.addPlugin(this.bgReplace);
+        
+        const textureLoader = new three.TextureLoader();
+
         this.bilateral = new BilateralPlugin(.8, .1);
-        //this.addPlugin(this.bilateral);
+        this.addPlugin(this.bilateral);
     }
 
     // Load assets and setup scene
