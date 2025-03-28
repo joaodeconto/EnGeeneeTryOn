@@ -1,9 +1,12 @@
 import { PoseEngine } from "@geenee/bodyprocessors";
+import { FaceEngine } from "@geenee/bodyprocessors";
 import { Recorder } from "@geenee/armature";
 import { OutfitParams } from "@geenee/bodyrenderers-common";
 import { AvatarRenderer } from "./avatarrenderer";
+import { HatRenderer } from "./hatrenderer";
 
-const engine = new PoseEngine();
+const enginePose = new PoseEngine();
+const engineFace = new FaceEngine();
 
 const token = location.hostname === "localhost" ?
     "JWHEn64uKNrekP5S8HSUBYrg5JPzYN8y" : "prod.url_sdk_token";
@@ -46,9 +49,9 @@ const modelMap: {
             occluders: [/Head$/, /Body/],
             hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Headwear/]
         }
-    }
-    
+    }    
 }
+
 let model = "polo";
 let avatar = modelMap["polo"].avatar;
 
@@ -72,22 +75,32 @@ async function main() {
     const container = document.getElementById("root");
     if (!container)
         return;
-    const renderer = new AvatarRenderer(
+    
+
+    const hatRenderer = new HatRenderer(
+        container,
+        "crop",
+        true
+    ) 
+    const avatarRenderer = new AvatarRenderer(
         container,
         "crop",
         !rear,
         modelMap[model].file,
         avatar ? undefined : modelMap[model].outfit
     );
-
     // Transpose toggle button
     const transposeButton = document.getElementById(
         "orientation") as HTMLButtonElement | null;
     if (transposeButton)
-        transposeButton.onclick = async () => {
-        transpose = !transpose; // Toggle transpose state
-        await engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
-        await engine.start();
+        transposeButton.onclick = async () => { transpose = !transpose; // Toggle transpose state
+        
+        await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
+        await enginePose.start();
+
+        await engineFace.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
+        await engineFace.start();
+
         console.log(`Transpose set to: ${transpose}`);
     };
 
@@ -96,7 +109,7 @@ async function main() {
     const safari = navigator.userAgent.indexOf('Safari') > -1 &&
                    navigator.userAgent.indexOf('Chrome') <= -1
     const ext = safari ? "mp4" : "webm";
-    const recorder = new Recorder(renderer, "video/" + ext);
+    const recorder = new Recorder(avatarRenderer, "video/" + ext);
     const recordButton = document.getElementById(
         "record") as HTMLButtonElement | null;
     if (recordButton)
@@ -128,7 +141,7 @@ async function main() {
                 document.body.appendChild(spinner);
                 model = btn.value;
                 avatar = modelMap[model].avatar;
-                await renderer.setOutfit(
+                await avatarRenderer.setOutfit(
                     modelMap[model].file,
                     avatar ? undefined : modelMap[model].outfit);
                 document.body.removeChild(spinner);
@@ -140,14 +153,23 @@ async function main() {
     // Initialization
     await Promise.all([
 
-        engine.addRenderer(renderer),
-        engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
-        engine.init({token: token, mask: {smooth: true}})
+        enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
+        enginePose.init({token: token, mask: {smooth: true}}),
+
+        engineFace.addRenderer(hatRenderer),
+        
+        enginePose.addRenderer(avatarRenderer),
+        engineFace.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
+        engineFace.init({token: token, transform: true, metric: true, mask: {smooth: true}})
     ]);
     transpose = false; // Set transpose to false initially
     
-    await engine.setup({ size: { width: 1920, height: 1080 }, transpose, rear }); 
-    await engine.start();
+    await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear }); 
+    
+    await engineFace.setup({ size: { width: 1920, height: 1080 }, transpose, rear });    
+    await enginePose.start();
+    await engineFace.start();
+    
 
     document.getElementById("loadui")?.remove();
 }

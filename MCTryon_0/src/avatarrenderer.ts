@@ -1,5 +1,5 @@
 
-import { PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
+import { HeadTrackPlugin, PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
 import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin, MaskMorphPlugin} from "@geenee/bodyrenderers-common";
 import { BgReplacePlugin, BgBlurPlugin, BrightnessPlugin, BodyPatchPlugin, BilateralPlugin } from "@geenee/bodyrenderers-common";
 import { PoseTuneParams, OutfitParams } from "@geenee/bodyrenderers-common";
@@ -15,6 +15,7 @@ export class AvatarRenderer extends PoseRenderer {
     // Scene
     protected poseOutfitPlugin: PoseOutfitPlugin;
     protected poseAlignPlugin: PoseAlignPlugin;
+
     protected maskUpscalePlugin: MaskUpscalePlugin; // Add mask upscale plugin
     protected maskSmoothPlugin: MaskSmoothPlugin; // Add mask plugin
     protected maskUploadPlugin: MaskUploadPlugin; // Add mask upload plugin
@@ -29,6 +30,7 @@ export class AvatarRenderer extends PoseRenderer {
 
     protected bgImageTexture?: ImageTexture;
 
+    protected hat?: three.Object3D;
     protected model?: three.Group;
     protected light?: three.PointLight;
     protected ambient?: three.AmbientLight;
@@ -40,12 +42,11 @@ export class AvatarRenderer extends PoseRenderer {
         container: HTMLElement,
         mode?: "fit" | "crop",
         mirror?: boolean,
-        protected url = "./public/Models/polo.glb",
+        protected outfitUrl = "./public/Models/polo.glb",
         protected outfit?: OutfitParams,
-        protected tuneParams?: PoseTuneParams,
-        ) 
+        protected tuneParams?: PoseTuneParams) 
         
-        {
+    {
         super(container, mode, mirror);
 
         this.brightness = new BrightnessPlugin((brightness) => this.updateLighting(brightness));
@@ -61,14 +62,13 @@ export class AvatarRenderer extends PoseRenderer {
         this.addPlugin(this.maskUploadPlugin);        
         
         this.maskUpscalePlugin = new MaskUpscalePlugin(.01,4);
-        this.addPlugin(this.maskUpscalePlugin);
-        
+        this.addPlugin(this.maskUpscalePlugin);        
 
         this.bodyPatch = new BodyPatchPlugin(.9,.1);
         //this.addPlugin(this.bodyPatch);
         
         this.maskErosionPlugin = new MaskErosionPlugin(15);
-        //this.addPlugin(this.maskErosionPlugin);
+        this.addPlugin(this.maskErosionPlugin);
 
         this.maskMorphPlugin = new MaskMorphPlugin(1);
         //this.addPlugin(this.maskMorphPlugin);
@@ -77,16 +77,15 @@ export class AvatarRenderer extends PoseRenderer {
         //this.addPlugin(this.maskSmoothPlugin);        
 
         this.bgBlur = new BgBlurPlugin(10, .5);
-        this.addPlugin(this.bgBlur);
-        
+        this.addPlugin(this.bgBlur);        
         
         this.bgReplace = new BgReplacePlugin(0.4, 0.6, false);
         //this.addPlugin(this.bgReplace);
-        
+                
         const textureLoader = new three.TextureLoader();
 
         this.bilateral = new BilateralPlugin(.8, .1);
-        this.addPlugin(this.bilateral);
+        //this.addPlugin(this.bilateral);
     }
 
     // Load assets and setup scene
@@ -111,10 +110,9 @@ export class AvatarRenderer extends PoseRenderer {
     // Setup scene
     protected async setupScene(scene: three.Scene) {
         // Model
-        await this.setModel(this.url);
-        
+        await this.setModel(this.outfitUrl);
         // Lightning
-        this.light = new three.PointLight(0xFFFFFF, this.lightInt, 100);
+        this.light = new three.PointLight(0xFFFFFF, this.lightInt, 150);
         this.light.position.set(0, 3, -1);
         this.light.castShadow = true;
         this.ambient = new three.AmbientLight(0xFFFFFF, this.ambientInt);
@@ -135,7 +133,7 @@ export class AvatarRenderer extends PoseRenderer {
         if (this.model)
             this.disposeObject(this.model);
         delete this.model;
-        this.url = url;
+        this.outfitUrl = url;
         this.outfit = outfit;
         const gltf = await new GLTFLoader().loadAsync(url);
         this.model = gltf.scene;
