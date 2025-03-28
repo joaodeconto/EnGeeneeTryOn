@@ -86,8 +86,8 @@ input.button[type="checkbox"] {
 #outfit-switch:checked { background-image: url("/apparel.svg"); }
 
 .carousel {
-    position: absolute;
-    width: 100%;
+    position: relative;
+    width: fit-content;
     height: 4rem;
     bottom: 1rem;
     z-index: 1;

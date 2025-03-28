@@ -1,5 +1,5 @@
 
-import { HeadTrackPlugin, PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
+import { SkeletonTransforms, PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
 import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin, MaskMorphPlugin} from "@geenee/bodyrenderers-common";
 import { BgReplacePlugin, BgBlurPlugin, BrightnessPlugin, BodyPatchPlugin, BilateralPlugin } from "@geenee/bodyrenderers-common";
 import { PoseTuneParams, OutfitParams } from "@geenee/bodyrenderers-common";
@@ -44,7 +44,9 @@ export class AvatarRenderer extends PoseRenderer {
         mirror?: boolean,
         protected outfitUrl = "./public/Models/polo.glb",
         protected outfit?: OutfitParams,
-        protected tuneParams?: PoseTuneParams) 
+        protected tuneParams?: PoseTuneParams,
+        protected hatUrl?: string,
+        protected hatModel?: three.Object3D) 
         
     {
         super(container, mode, mirror);
@@ -111,6 +113,7 @@ export class AvatarRenderer extends PoseRenderer {
     protected async setupScene(scene: three.Scene) {
         // Model
         await this.setModel(this.outfitUrl);
+        await this.setHat(this.hatUrl);
         // Lightning
         this.light = new three.PointLight(0xFFFFFF, this.lightInt, 150);
         this.light.position.set(0, 3, -1);
@@ -140,6 +143,44 @@ export class AvatarRenderer extends PoseRenderer {
         this.scene?.add(this.model);
         this.poseOutfitPlugin.setOutfit(this.model, outfit);
         this.poseAlignPlugin.setNode(this.model);
+        this.setHat(undefined, this.hat);
+    }
+
+    async setHat(url?: string, hatModel?: three.Object3D) {
+        if (this.hat) {
+            this.disposeObject(this.hat);
+        }
+        delete this.hat;
+        
+        if(hatModel)
+        {
+            this.hat = hatModel;
+        }
+        else if (url) {
+        // Load hat model
+        const gltf = await new GLTFLoader().loadAsync(url);
+        this.hat = gltf.scene;
+        }
+    
+        if (!this.model) {
+            console.warn("Character model not loaded yet.");
+            return;
+        }
+    
+         // Find the head bone
+        const headBone = this.model.getObjectByName("Head") 
+        
+        if (!headBone) {
+            console.error("Head bone not found!");
+            return;
+        }
+        
+        if(this.hat)
+        {
+        headBone.add(this.hat);
+        this.hat.position.set(0, 0.1, .05); // Adjust as needed
+        this.hat.scale.set(.9, .9, .9); // Adjust scale if needed
+        }
     }
 
     // Update

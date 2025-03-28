@@ -1,12 +1,9 @@
 import { PoseEngine } from "@geenee/bodyprocessors";
-import { FaceEngine } from "@geenee/bodyprocessors";
 import { Recorder } from "@geenee/armature";
-import { OutfitParams } from "@geenee/bodyrenderers-common";
 import { AvatarRenderer } from "./avatarrenderer";
-import { HatRenderer } from "./hatrenderer";
+import { outfitMap, hatMap } from "./modelMap";
 
 const enginePose = new PoseEngine();
-const engineFace = new FaceEngine();
 
 const token = location.hostname === "localhost" ?
     "JWHEn64uKNrekP5S8HSUBYrg5JPzYN8y" : "prod.url_sdk_token";
@@ -15,45 +12,9 @@ const token = location.hostname === "localhost" ?
 const urlParams = new URLSearchParams(window.location.search);
 let rear = urlParams.has("rear");
 let transpose = true; // Added variable to track transpose state
-// Model map
-const modelMap: {
-    [key: string]: {
-        file: string, avatar: boolean,
-        outfit?: OutfitParams
-    }
-} = {
-    polo: {
-        file: "./public/Models/polo.glb", avatar: false,
-        outfit: {
-            occluders: [/Head$/, /Body/],
-            hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Glasses/]
-        }
-    },
-    tee: {
-        file: "./public/Models/tee.glb", avatar: false,
-        outfit: {
-            occluders: [/Head$/, /Body/],
-            hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Glasses/]
-        }
-    },
-    quarter: {
-        file: "./public/Models/quarter.glb", avatar: false,
-        outfit: {
-            occluders: [/Head$/, /Body/],
-            hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Glasses/]
-        }
-    },
-    noCloth: {
-        file: "./public/Models/base.glb", avatar: false,
-        outfit: {
-            occluders: [/Head$/, /Body/],
-            hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Headwear/]
-        }
-    }    
-}
 
 let model = "polo";
-let avatar = modelMap["polo"].avatar;
+let avatar = outfitMap["polo"].avatar;
 
 // Create spinner element
 function createSpinner() {
@@ -74,21 +35,15 @@ async function main() {
     // Renderer
     const container = document.getElementById("root");
     if (!container)
-        return;
-    
-
-    const hatRenderer = new HatRenderer(
-        container,
-        "crop",
-        true
-    ) 
+        return;   
     const avatarRenderer = new AvatarRenderer(
         container,
         "crop",
         !rear,
-        modelMap[model].file,
-        avatar ? undefined : modelMap[model].outfit
+        outfitMap[model].file,
+        avatar ? undefined : outfitMap[model].outfit
     );
+
     // Transpose toggle button
     const transposeButton = document.getElementById(
         "orientation") as HTMLButtonElement | null;
@@ -98,13 +53,8 @@ async function main() {
         await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
         await enginePose.start();
 
-        await engineFace.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
-        await engineFace.start();
-
         console.log(`Transpose set to: ${transpose}`);
     };
-
-
     // Recorder
     const safari = navigator.userAgent.indexOf('Safari') > -1 &&
                    navigator.userAgent.indexOf('Chrome') <= -1
@@ -130,25 +80,43 @@ async function main() {
             }, 10000);
         };
         
-    // Model carousel
-    const modelBtns = document.getElementsByName(
+    // Outift carousel
+    const outfitlBtns = document.getElementsByName(
         "model") as NodeListOf<HTMLInputElement>;
-    modelBtns.forEach((btn) => {
+    outfitlBtns.forEach((btn) => {
         btn.onchange = async () => {
-            if (btn.checked && modelMap[btn.value]) {
-                modelBtns.forEach((btn) => { btn.disabled = true; })
+            if (btn.checked && outfitMap[btn.value]) {
+                outfitlBtns.forEach((btn) => { btn.disabled = true; })
                 const spinner = createSpinner();
                 document.body.appendChild(spinner);
                 model = btn.value;
-                avatar = modelMap[model].avatar;
+                avatar = outfitMap[model].avatar;
                 await avatarRenderer.setOutfit(
-                    modelMap[model].file,
-                    avatar ? undefined : modelMap[model].outfit);
+                    outfitMap[model].file,
+                    avatar ? undefined : outfitMap[model].outfit);
                 document.body.removeChild(spinner);
-                modelBtns.forEach((btn) => { btn.disabled = false; });
+                outfitlBtns.forEach((btn) => { btn.disabled = false; });
             }
         };
     });
+
+    const hatBtns = document.getElementsByName(
+        "hat") as NodeListOf<HTMLInputElement>;
+        hatBtns.forEach((btn) => {
+        btn.onchange = async () => {
+            if (btn.checked && hatMap[btn.value]) {
+                hatBtns.forEach((btn) => { btn.disabled = true; })
+                const spinner = createSpinner();
+                document.body.appendChild(spinner);
+                model = btn.value;
+                await avatarRenderer.setHat(
+                    hatMap[model].file);
+                document.body.removeChild(spinner);
+                hatBtns.forEach((btn) => { btn.disabled = false; });
+            }
+        };
+    });
+
     
     // Initialization
     await Promise.all([
@@ -156,19 +124,13 @@ async function main() {
         enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
         enginePose.init({token: token, mask: {smooth: true}}),
 
-        engineFace.addRenderer(hatRenderer),
-        
-        enginePose.addRenderer(avatarRenderer),
-        engineFace.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
-        engineFace.init({token: token, transform: true, metric: true, mask: {smooth: true}})
+        enginePose.addRenderer(avatarRenderer),        
     ]);
     transpose = false; // Set transpose to false initially
     
-    await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear }); 
-    
-    await engineFace.setup({ size: { width: 1920, height: 1080 }, transpose, rear });    
+    await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
+     
     await enginePose.start();
-    await engineFace.start();
     
 
     document.getElementById("loadui")?.remove();
