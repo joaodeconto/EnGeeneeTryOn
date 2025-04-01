@@ -53,3 +53,19 @@ export const hatMap: {[key: string]: {file: string}} =
         file: "./public/Models/noHat.glb"
     }        
 }
+
+export const bgMap: {[key: string]: {file: string}} =
+{
+    bg1: {
+        file: "./Neutral/BG_1.jpeg"        
+    },    
+    bg2: {
+        file: "./Neutral/BG_2.jpeg"
+    },
+    bg3: {
+        file: "./Neutral/BG_3.jpeg"
+    },
+    bg4: {
+        file: "./public/Neutral/No_BG_Neutral.png"
+    }
+}

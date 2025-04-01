@@ -3,9 +3,8 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: hsl(240 10% 3.9%);
-  background: hsl(0 0 100%);
-  margin: 0;
+  color: hsla(240, 10%, 4%, 0);
+  
 }
 
 *, ::before, ::after {

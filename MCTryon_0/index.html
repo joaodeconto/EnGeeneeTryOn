@@ -7,7 +7,7 @@
     <link rel="icon" href="favicon.ico"/>
     <link rel="apple-touch-icon" href="logo192.png" />
     <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="./src/index.css">
+    <link rel="stylesheet" href="./src/index.css">    
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -30,10 +30,16 @@
             <p>This may take a moment</p>
         </div>
     </div>
-    <div id="root" class="full-screen"></div>
-        <div class="icon" style="mask:url(./switch.svg);"></div>
+    <div id="root" class="full-screen">
+        
+    </div>
+
+
+    <div id="background" class="full-screen" style="background-image: url(./Neutral/BG_1.jpeg); position: absolute; z-index: -30; color: rgb(255, 255, 255);"> </div>
+    <div class="icon" style="mask:url(./switch.svg);"></div>
 
     </button>
+    
     <button id="orientation" class="button"
         style="position: absolute; top: 6.5rem; right: 0.5rem; z-index: 1;"
     >
@@ -78,6 +84,21 @@
             
         <input type="radio" name="hat" value="noHat" class="carousel-item"
         style="background-image: url(./public/Neutral/No_Cap_Neutral.png);"></input>
+    </div>
+
+    <div id="bgButtons" class="carousel" style="position: absolute ; bottom: 0.5rem; left: 50%; transform: translateX(0%);">
+        
+        <input type="radio" name="bg" value="bg1" class="carousel-item"
+            style="background-image: url(./public/Neutral/BG_1_Neutral.png);" checked=true></input>
+
+        <input type="radio" name="bg" value="bg2" class="carousel-item"
+            style="background-image: url(./public/Neutral/BG_2_Neutral.png);"></input>
+
+        <input type="radio" name="bg" value="bg3" class="carousel-item"
+            style="background-image: url(./public/Neutral/BG_3_Neutral.png);"></input>
+            
+        <input type="radio" name="bg" value="noBg" class="carousel-item"
+            style="background-image: url(./public/Neutral/No_BG_Neutral.png);"></input>
     </div>
 
   </body>

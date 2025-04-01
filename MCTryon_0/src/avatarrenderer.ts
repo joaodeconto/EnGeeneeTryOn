@@ -1,6 +1,6 @@
 
 import { SkeletonTransforms, PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
-import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin, MaskMorphPlugin} from "@geenee/bodyrenderers-common";
+import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin, MaskMorphPlugin, VideoMergePlugin} from "@geenee/bodyrenderers-common";
 import { BgReplacePlugin, BgBlurPlugin, BrightnessPlugin, BodyPatchPlugin, BilateralPlugin } from "@geenee/bodyrenderers-common";
 import { PoseTuneParams, OutfitParams } from "@geenee/bodyrenderers-common";
 import { ImageTexture } from "@geenee/armature";
@@ -44,50 +44,50 @@ export class AvatarRenderer extends PoseRenderer {
         mirror?: boolean,
         protected outfitUrl = "./public/Models/polo.glb",
         protected outfit?: OutfitParams,
-        protected tuneParams?: PoseTuneParams,
+        protected bgUrl?: string,        
+        protected tuneParams?: PoseTuneParams,        
         protected hatUrl?: string,
-        protected hatModel?: three.Object3D) 
+        protected hatModel?: three.Object3D)
         
     {
         super(container, mode, mirror);
 
         this.brightness = new BrightnessPlugin((brightness) => this.updateLighting(brightness));
-        this.addPlugin(this.brightness);
 
         this.poseOutfitPlugin = new PoseOutfitPlugin(undefined, outfit);        
-        this.addPlugin(this.poseOutfitPlugin);
-
-        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true, shoulderOffset: 0.2, spineCurve: 0});
-        this.addPlugin(this.poseAlignPlugin);        
-
+             
         this.maskUploadPlugin = new MaskUploadPlugin();
-        this.addPlugin(this.maskUploadPlugin);        
         
-        this.maskUpscalePlugin = new MaskUpscalePlugin(.01,4);
-        this.addPlugin(this.maskUpscalePlugin);        
-
-        this.bodyPatch = new BodyPatchPlugin(.9,.1);
-        //this.addPlugin(this.bodyPatch);
-        
-        this.maskErosionPlugin = new MaskErosionPlugin(15);
-        this.addPlugin(this.maskErosionPlugin);
-
-        this.maskMorphPlugin = new MaskMorphPlugin(1);
-        //this.addPlugin(this.maskMorphPlugin);
-
-        this.maskSmoothPlugin = new MaskSmoothPlugin(10);
-        //this.addPlugin(this.maskSmoothPlugin);        
-
+        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true, shoulderOffset: 0.2, spineCurve: 0});
+        this.maskUpscalePlugin = new MaskUpscalePlugin(.99,4);        
         this.bgBlur = new BgBlurPlugin(10, .5);
-        this.addPlugin(this.bgBlur);        
+        this.bodyPatch = new BodyPatchPlugin(.9,.1);        
+        this.maskErosionPlugin = new MaskErosionPlugin(1);        
+        this.maskMorphPlugin = new MaskMorphPlugin(1);        
+        this.bgReplace = new BgReplacePlugin(.1, .2, mirror);
+        this.bilateral = new BilateralPlugin(.8, .1);        
+        this.maskSmoothPlugin = new MaskSmoothPlugin(1);
         
-        this.bgReplace = new BgReplacePlugin(0.4, 0.6, false);
-        //this.addPlugin(this.bgReplace);
+        this.addPlugin(this.brightness);
+        this.addPlugin(this.poseOutfitPlugin);
+        this.addPlugin(this.poseAlignPlugin);            
+         
+        this.addPlugin(this.maskUploadPlugin);         
+        this.addPlugin(this.maskUpscalePlugin);    
+        
+        this.addPlugin(this.bgReplace);  
+        
+        
+        //this.addPlugin(this.bodyPatch);        
+        this.addPlugin(this.maskSmoothPlugin);
+        this.addPlugin(this.maskErosionPlugin);
+        this.addPlugin(this.maskMorphPlugin);
+         
+        //this.addPlugin(this.bgBlur);           
+        //this.addPlugin(this.bilateral);        
                 
-        const textureLoader = new three.TextureLoader();
-
-        this.bilateral = new BilateralPlugin(.8, .1);
-        //this.addPlugin(this.bilateral);
+         
+        const textureLoader = new three.TextureLoader();      
     }
 
     // Load assets and setup scene
@@ -114,6 +114,11 @@ export class AvatarRenderer extends PoseRenderer {
         // Model
         await this.setModel(this.outfitUrl);
         await this.setHat(this.hatUrl);
+        if (this.bgUrl) {
+            await this.setBG(this.bgUrl);
+        } else {
+            console.warn("Background URL is undefined.");
+        }
         // Lightning
         this.light = new three.PointLight(0xFFFFFF, this.lightInt, 150);
         this.light.position.set(0, 3, -1);
@@ -146,6 +151,21 @@ export class AvatarRenderer extends PoseRenderer {
         this.setHat(undefined, this.hat);
     }
 
+    async setBG(file?: string) {
+        if (!file) {
+            console.error("Background file is undefined.");
+            return;
+        }
+        // Example: update a background image element
+        const bgElement = document.getElementById("background");
+        if (bgElement) {
+            bgElement.style.backgroundImage = `url(${file})`;
+        } else {
+            console.warn("Background element not found.");
+        }
+        // Additional logic to update the scene if needed.
+    }
+    
     async setHat(url?: string, hatModel?: three.Object3D) {
         if (this.hat) {
             this.disposeObject(this.hat);

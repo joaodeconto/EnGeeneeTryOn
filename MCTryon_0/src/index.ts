@@ -1,7 +1,7 @@
 import { PoseEngine } from "@geenee/bodyprocessors";
 import { Recorder } from "@geenee/armature";
 import { AvatarRenderer } from "./avatarrenderer";
-import { outfitMap, hatMap } from "./modelMap";
+import { outfitMap, hatMap, bgMap } from "./modelMap";
 
 const enginePose = new PoseEngine();
 
@@ -15,6 +15,7 @@ let transpose = true; // Added variable to track transpose state
 
 let model = "polo";
 let avatar = outfitMap["polo"].avatar;
+let bgUrl =  "./Neutral/BG_1.jpeg";   
 
 // Create spinner element
 function createSpinner() {
@@ -41,7 +42,8 @@ async function main() {
         "crop",
         !rear,
         outfitMap[model].file,
-        avatar ? undefined : outfitMap[model].outfit
+        avatar ? undefined : outfitMap[model].outfit,    
+        bgUrl,    
     );
 
     // Transpose toggle button
@@ -117,22 +119,37 @@ async function main() {
         };
     });
 
+    const bgBtns = document.getElementsByName(
+        "bg") as NodeListOf<HTMLInputElement>;
+        bgBtns.forEach((btn) => {
+        btn.onchange = async () => {
+            if (btn.checked && bgMap[btn.value]) {
+                bgBtns.forEach((btn) => { btn.disabled = true; })
+                const spinner = createSpinner();
+                document.body.appendChild(spinner);
+                model = btn.value;
+                await avatarRenderer.setBG(
+                    bgMap[model].file);
+                document.body.removeChild(spinner);
+                bgBtns.forEach((btn) => { btn.disabled = false; });
+            }
+        };
+    });
+
     
     // Initialization
     await Promise.all([
 
         enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear,}),
         enginePose.init({token: token, mask: {smooth: true}}),
-
         enginePose.addRenderer(avatarRenderer),        
     ]);
+
     transpose = false; // Set transpose to false initially
     
-    await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
-     
+    await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });     
     await enginePose.start();
     
-
     document.getElementById("loadui")?.remove();
 }
 main();
