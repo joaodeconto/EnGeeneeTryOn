@@ -16,7 +16,7 @@ let transpose = true; // Added variable to track transpose state
 let model = "polo";
 let avatar = outfitMap["polo"].avatar;
 let bgUrl =  "./Neutral/BG_1.jpeg";   
-
+    
 // Create spinner element
 function createSpinner() {
     const spinner = document.createElement("div");
@@ -121,15 +121,25 @@ async function main() {
 
     const bgBtns = document.getElementsByName(
         "bg") as NodeListOf<HTMLInputElement>;
-        bgBtns.forEach((btn) => {
+    bgBtns.forEach((btn) => {
         btn.onchange = async () => {
             if (btn.checked && bgMap[btn.value]) {
                 bgBtns.forEach((btn) => { btn.disabled = true; })
                 const spinner = createSpinner();
                 document.body.appendChild(spinner);
                 model = btn.value;
-                await avatarRenderer.setBG(
-                    bgMap[model].file);
+                if(model === "noBg")
+                {
+                 console.log("nobg");
+                  await avatarRenderer.toggleBgMode(true);
+                  await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
+                  await enginePose.start();
+                }
+                else
+                {
+                    await avatarRenderer.setBG(bgMap[model].file);
+                    await avatarRenderer.toggleBgMode(false);
+                }
                 document.body.removeChild(spinner);
                 bgBtns.forEach((btn) => { btn.disabled = false; });
             }

@@ -37,6 +37,9 @@ export class AvatarRenderer extends PoseRenderer {
     readonly lightInt: number = 30.75;
     readonly ambientInt: number = 1.0;
 
+    protected isBlur?: boolean;
+
+
     // Constructor
     constructor(
         container: HTMLElement,
@@ -53,41 +56,44 @@ export class AvatarRenderer extends PoseRenderer {
         super(container, mode, mirror);
 
         this.brightness = new BrightnessPlugin((brightness) => this.updateLighting(brightness));
-
-        this.poseOutfitPlugin = new PoseOutfitPlugin(undefined, outfit);        
-             
-        this.maskUploadPlugin = new MaskUploadPlugin();
+        this.poseOutfitPlugin = new PoseOutfitPlugin(undefined, outfit);                     
+        this.maskUploadPlugin = new MaskUploadPlugin();        
+        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true,neckAdjust: .0, shoulderOffset: 0.0, spineCurve: 0});
         
-        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true, shoulderOffset: 0.2, spineCurve: 0});
-        this.maskUpscalePlugin = new MaskUpscalePlugin(.99,4);        
-        this.bgBlur = new BgBlurPlugin(10, .5);
-        this.bodyPatch = new BodyPatchPlugin(.9,.1);        
-        this.maskErosionPlugin = new MaskErosionPlugin(1);        
-        this.maskMorphPlugin = new MaskMorphPlugin(1);        
+        this.maskUpscalePlugin = new MaskUpscalePlugin(.1,6);        
+        this.bgBlur = new BgBlurPlugin(10, .5);        
+        this.maskMorphPlugin = new MaskMorphPlugin(2);        
         this.bgReplace = new BgReplacePlugin(.1, .2, mirror);
-        this.bilateral = new BilateralPlugin(.8, .1);        
-        this.maskSmoothPlugin = new MaskSmoothPlugin(1);
+        this.bilateral = new BilateralPlugin(.5, 1);        
+        this.maskSmoothPlugin = new MaskSmoothPlugin(1);        
+        this.maskErosionPlugin = new MaskErosionPlugin(3);   
         
+
+        //ORDER MATTERS
         this.addPlugin(this.brightness);
         this.addPlugin(this.poseOutfitPlugin);
-        this.addPlugin(this.poseAlignPlugin);            
-         
-        this.addPlugin(this.maskUploadPlugin);         
-        this.addPlugin(this.maskUpscalePlugin);    
-        
-        this.addPlugin(this.bgReplace);  
-        
-        
-        //this.addPlugin(this.bodyPatch);        
+        this.addPlugin(this.poseAlignPlugin);
+        this.addPlugin(this.maskUploadPlugin);                  
         this.addPlugin(this.maskSmoothPlugin);
         this.addPlugin(this.maskErosionPlugin);
         this.addPlugin(this.maskMorphPlugin);
-         
+        this.addPlugin(this.bgReplace);  
         //this.addPlugin(this.bgBlur);           
-        //this.addPlugin(this.bilateral);        
-                
+                     
          
         const textureLoader = new three.TextureLoader();      
+    }
+
+    async toggleBgMode(enable: boolean) {
+        if (enable) {
+            this.isBlur = true;            
+            this.removePlugin(this.bgReplace);
+            this.addPlugin(this.bgBlur);
+        } else if (this.isBlur) {            
+            this.isBlur = false;
+            this.addPlugin(this.bgReplace);
+            this.removePlugin(this.bgBlur);
+        }
     }
 
     // Load assets and setup scene

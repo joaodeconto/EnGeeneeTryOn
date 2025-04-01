@@ -35,7 +35,15 @@
     </div>
 
 
-    <div id="background" class="full-screen" style="background-image: url(./Neutral/BG_1.jpeg); position: absolute; z-index: -30; color: rgb(255, 255, 255);"> </div>
+    <div id="background" class="full-screen"   
+        style="background-image: url(./Neutral/BG_1.jpeg); 
+        overflow: hidden;        
+        z-index: -30; 
+        background-size: cover; 
+        background-position: center; 
+        top: 0; 
+        left: 0;">
+    </div>
     <div class="icon" style="mask:url(./switch.svg);"></div>
 
     </button>
@@ -52,7 +60,7 @@
         <div class="icon" style="mask:url(./shot.svg);"></div>
     </button>
     
-    <div id="outfitButtons" class="carousel" style="position: absolute ; bottom: 0.5rem; left: 75%; transform: translateX(-25%);">
+    <div id="outfitButtons" class="carousel" style="position: absolute ;  flex-direction: column; top: 50%; right: 5%; transform: translateY(-50%);">
 
         <input type="radio" name="model" value="polo" class="carousel-item"
             style="background-image: url(./public/Neutral/Square_Neutral_Polo.png);" checked=true></input>
@@ -68,7 +76,7 @@
     </div>
 
     
-    <div id="hatButtons" class="carousel" style="position: absolute ; bottom: 0.5rem; left: 25%; transform: translateX(-25%);">
+    <div id="hatButtons" class="carousel" style="position: absolute; align-items: center; flex-direction: column; bottom: 50%; right: 5%;transform: translateY(-50%); ">
         
         <input type="radio" name="hat" value="dadA" class="carousel-item"
             style="background-image: url(./public/Neutral/Square_Neutral_EDCW.png);" checked=true></input>
@@ -86,7 +94,7 @@
         style="background-image: url(./public/Neutral/No_Cap_Neutral.png);"></input>
     </div>
 
-    <div id="bgButtons" class="carousel" style="position: absolute ; bottom: 0.5rem; left: 50%; transform: translateX(0%);">
+    <div id="bgButtons" class="carousel" style="position: absolute ; flex-direction: column; bottom: 50%;  left: 5%;">
         
         <input type="radio" name="bg" value="bg1" class="carousel-item"
             style="background-image: url(./public/Neutral/BG_1_Neutral.png);" checked=true></input>

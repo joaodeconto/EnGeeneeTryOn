@@ -65,7 +65,7 @@ export const bgMap: {[key: string]: {file: string}} =
     bg3: {
         file: "./Neutral/BG_3.jpeg"
     },
-    bg4: {
+    noBg: {
         file: "./public/Neutral/No_BG_Neutral.png"
     }
 }

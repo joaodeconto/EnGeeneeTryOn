@@ -4,6 +4,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: hsla(240, 10%, 4%, 0);
+  margin: 0;
   
 }
 
@@ -85,13 +86,14 @@ input.button[type="checkbox"] {
 #outfit-switch:checked { background-image: url("/apparel.svg"); }
 
 .carousel {
-    position: relative;
-    width: fit-content;
-    height: 4rem;
-    bottom: 1rem;
-    z-index: 1;
-    display: flex;
-    justify-content: center;
+  position: absolute;
+  width: fit-content;
+  height: auto;
+  z-index: 1;
+  display: flex;
+  flex-direction: row; /* Changes layout to column */
+  align-items: center; /* Centers items horizontally */
+  gap: 0.5rem; /* Adds space between items */
 }
 
 .carousel-item {
