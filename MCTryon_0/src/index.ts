@@ -43,7 +43,8 @@ async function main() {
         !rear,
         outfitMap[model].file,
         avatar ? undefined : outfitMap[model].outfit,    
-        bgUrl,    
+        bgUrl,
+        {scaleLimbs: true,neckAdjust: .0,hipsD: [1,1,1],  shoulderOffset: 0.0, spineCurve: 0}    
     );
 
     // Transpose toggle button

@@ -1,15 +1,16 @@
 
-import { SkeletonTransforms, PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
-import { MaskUploadPlugin, MaskUpscalePlugin, MaskSmoothPlugin, MaskErosionPlugin, MaskMorphPlugin, VideoMergePlugin} from "@geenee/bodyrenderers-common";
+import { PoseRenderer, PoseOutfitPlugin, PoseAlignPlugin} from "@geenee/bodyrenderers-three";
+import { MaskUploadPlugin, MaskUpscalePlugin, MaskStepPlugin, MaskSmoothPlugin, MaskErosionPlugin, MaskMorphPlugin, VideoMergePlugin} from "@geenee/bodyrenderers-common";
 import { BgReplacePlugin, BgBlurPlugin, BrightnessPlugin, BodyPatchPlugin, BilateralPlugin } from "@geenee/bodyrenderers-common";
 import { PoseTuneParams, OutfitParams } from "@geenee/bodyrenderers-common";
+import { OccluderMaskPlugin} from ""
 import { ImageTexture } from "@geenee/armature";
 import { PoseResult } from "@geenee/bodyprocessors";
 import * as three from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 
-
+//https://www.youtube.com/watch?v=K4XykM89guk
 // Renderer
 export class AvatarRenderer extends PoseRenderer {
     // Scene
@@ -21,10 +22,10 @@ export class AvatarRenderer extends PoseRenderer {
     protected maskUploadPlugin: MaskUploadPlugin; // Add mask upload plugin
     protected maskErosionPlugin: MaskErosionPlugin; // Add mask erosion plugin
     protected maskMorphPlugin: MaskMorphPlugin; // Add mask
+    protected maskStepPlugin: MaskStepPlugin; // Add mask step plugin
 
     protected bgBlur: BgBlurPlugin; // Add blur plugin
     protected bgReplace: BgReplacePlugin; // Add background replace plugin
-    protected bodyPatch: BodyPatchPlugin; // Add body patch plugin
     protected bilateral: BilateralPlugin; // Add bilateral plugin
     protected brightness: BrightnessPlugin; // Add brightness plugin
 
@@ -34,8 +35,8 @@ export class AvatarRenderer extends PoseRenderer {
     protected model?: three.Group;
     protected light?: three.PointLight;
     protected ambient?: three.AmbientLight;
-    readonly lightInt: number = 30.75;
-    readonly ambientInt: number = 1.0;
+    readonly lightInt: number = 50.75;
+    readonly ambientInt: number = 2.0;
 
     protected isBlur?: boolean;
 
@@ -56,29 +57,36 @@ export class AvatarRenderer extends PoseRenderer {
         super(container, mode, mirror);
 
         this.brightness = new BrightnessPlugin((brightness) => this.updateLighting(brightness));
-        this.poseOutfitPlugin = new PoseOutfitPlugin(undefined, outfit);                     
+        this.poseOutfitPlugin = new PoseOutfitPlugin(undefined, outfit,);                     
         this.maskUploadPlugin = new MaskUploadPlugin();        
-        this.poseAlignPlugin = new PoseAlignPlugin(undefined, {scaleLimbs: true,neckAdjust: .0, shoulderOffset: 0.0, spineCurve: 0});
+        this.poseAlignPlugin = new PoseAlignPlugin(this.model, {scaleLimbs: true});
         
-        this.maskUpscalePlugin = new MaskUpscalePlugin(.1,6);        
-        this.bgBlur = new BgBlurPlugin(10, .5);        
-        this.maskMorphPlugin = new MaskMorphPlugin(2);        
-        this.bgReplace = new BgReplacePlugin(.1, .2, mirror);
-        this.bilateral = new BilateralPlugin(.5, 1);        
-        this.maskSmoothPlugin = new MaskSmoothPlugin(1);        
-        this.maskErosionPlugin = new MaskErosionPlugin(3);   
+        this.maskUpscalePlugin = new MaskUpscalePlugin(.5,6); //upscalemask    
+        this.bgBlur = new BgBlurPlugin(10,.4); //sets bg blur    
+        this.maskMorphPlugin = new MaskMorphPlugin(0); //resize mask insideout        
+        this.bgReplace = new BgReplacePlugin(.1, .2, mirror); // correctly set
+        //this.bilateral = new BilateralPlugin(.5, .1);        
+        this.maskSmoothPlugin = new MaskSmoothPlugin(3); // smooth around user        
+        this.maskErosionPlugin = new MaskErosionPlugin(2); // resize mask    
+        this.maskStepPlugin = new MaskStepPlugin(0.4, 0.5, this.videoSize); // resize mask
         
 
         //ORDER MATTERS
         this.addPlugin(this.brightness);
         this.addPlugin(this.poseOutfitPlugin);
         this.addPlugin(this.poseAlignPlugin);
-        this.addPlugin(this.maskUploadPlugin);                  
+        
+        //this.addPlugin(this.maskErosionPlugin);
+        
+        //this.addPlugin(this.maskStepPlugin);
+        this.addPlugin(this.maskMorphPlugin);  
         this.addPlugin(this.maskSmoothPlugin);
-        this.addPlugin(this.maskErosionPlugin);
-        this.addPlugin(this.maskMorphPlugin);
+        this.addPlugin(this.maskUploadPlugin);     
+         
         this.addPlugin(this.bgReplace);  
-        //this.addPlugin(this.bgBlur);           
+        
+        //this.addPlugin(this.bgBlur);      
+        this.addPlugin(this.maskUpscalePlugin);         
                      
          
         const textureLoader = new three.TextureLoader();      
@@ -126,7 +134,7 @@ export class AvatarRenderer extends PoseRenderer {
             console.warn("Background URL is undefined.");
         }
         // Lightning
-        this.light = new three.PointLight(0xFFFFFF, this.lightInt, 150);
+        this.light = new three.PointLight(0xFFFFFF, this.lightInt, 250);
         this.light.position.set(0, 3, -1);
         this.light.castShadow = true;
         this.ambient = new three.AmbientLight(0xFFFFFF, this.ambientInt);
@@ -154,7 +162,7 @@ export class AvatarRenderer extends PoseRenderer {
         this.scene?.add(this.model);
         this.poseOutfitPlugin.setOutfit(this.model, outfit);
         this.poseAlignPlugin.setNode(this.model);
-        this.setHat(undefined, this.hat);
+        this.setHat(undefined, this.hat);        
     }
 
     async setBG(file?: string) {

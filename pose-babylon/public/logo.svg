@@ -1,0 +1,8 @@
+<svg width="64" height="64" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <g class="layer">
+  <title>layer_1</title>
+  <circle cx="32" cy="32" fill="transparent" id="svg_1" r="25" stroke="#000000" stroke-width="13"/>
+  <circle cx="32" cy="32" fill="transparent" id="svg_2" r="14" stroke="#000000" stroke-width="3"/>
+  <circle cx="32" cy="32" fill="transparent" id="svg_3" r="7" stroke="#000000" stroke-width="5"/>
+ </g>
+</svg>
