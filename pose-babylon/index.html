@@ -11,27 +11,23 @@
   </head>
   <body>
     <video id="video" autoplay muted playsinline style="display: none;"></video>
-
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <script type="module" src="./src/index.ts"></script>
-    <div id="loadui" class="full-screen loadui">
-        <h4>powered by</h4>
-        <h2>GEENEE</h3>
-        <div style="flex-grow: 1; align-content: center;">
-            <div class="cube-container">
-                <div class="cube">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
-            </div>
-            <p>Virtual try-on is loading</p>
-            <p>This may take a moment</p>
-        </div>
+
+
+    <div id="holding-screen" class="full-screen video-introduction" style="display: contents">
+        <video autoplay loop muted playsinline class="video-introduction video">
+          <source src="MC_API_NFT_MirrorBG-FINAL.mp4" type="video/mp4" />
+        </video>
+        <button id="start-button" class="golfball-button">
+          <img src="MC_logo_1_2.png" />
+        </button>
     </div>
+
+    <div id="welcome-message"
+    class="welcome-screen hidden"
+    data-message="Welcome to the Future of Retail">
+</div>
 
     <div id="root" class="full-screen"></div>
     

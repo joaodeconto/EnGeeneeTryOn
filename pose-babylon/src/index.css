@@ -4,8 +4,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: hsla(240, 10%, 4%, 0);
-  margin: 0;
-  
+  margin: 0;  
 }
 
 *, ::before, ::after {
@@ -13,23 +12,153 @@ body {
   border-width: 0;
   border-style: solid;
 }
+.fade-out {
+  animation: fadeOut 1.5s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 1.5s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.welcome-screen,
+.instructions-screen {
+  /* 33% of viewport width, height = 2/3 of that width */
+  width: 33vw;
+  aspect-ratio: 3 / 2;
+
+  /* center on screen */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* your card as a full‑cover backdrop */
+  background: url("/Cards/Instructions_Card_Blue.png") no-repeat center/cover;
+
+  /* flex‑center any text inside */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  /* text styles */
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+
+  /* rounding and shadow */
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+
+  /* bring it in with fade‑in */
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards; /* or use your existing fade-in */
+}
+
+/* fade‑out */
+.welcome-screen.fade-out,
+.instructions-screen.fade-out {
+  animation: fadeOut 0.5s ease-in forwards; /* or your existing fade-out */
+}
+.welcome-screen::after,
+.instructions-screen::after {
+  content: attr(data-message);
+  
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  /* allow some breathing room at the sides */
+  width: 90%;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.5rem;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+  
+  pointer-events: none;
+}
+
+
+
 
 .full-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
+  pointer-events: none;
+}
+
+.video-introduction {  
+  pointer-events: none;
+  position: flex;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  z-index: 9998;
+}
+
+.video-introduction video {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  object-fit: cover;
+  object-position: top;
+  z-index: 9998;
+  pointer-events: none;
+}
+
+.golfball-button {
+  z-index: 9999;
+  position: absolute;  
+  background: transparent;
+  border: none;
+  cursor: pointer;  
+  pointer-events: auto; /* explicitly allow clicking */
 }
 
 .loadui {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    z-index: 2;
-    padding: 2rem 1rem;
-    background-image: url(/bevel.svg);
-    background-color: hsl(0 0 100%);
-    background-position: center;
+  z-index: 3;
+  padding: 2rem 1rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
 }
+
 
 h4 {
     font-size: 1.25rem;

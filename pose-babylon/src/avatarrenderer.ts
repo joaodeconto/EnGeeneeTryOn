@@ -11,18 +11,21 @@ import { ShadowLight } from "@babylonjs/core/Lights/shadowLight";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { UIController } from "./uiController";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 import "@babylonjs/loaders/glTF/2.0";
 
 // Renderer
 export class AvatarRenderer extends PoseRenderer {
+
+    protected ui: UIController;
     // Scene
     protected aligner: PoseAlignPlugin;
     protected model?: AbstractMesh
     protected shadowers: ShadowGenerator[] = [];
     // Hands up
-    protected handsUp = false;
+    protected isholdingScreen = true;
     protected textModel?: AbstractMesh;
 
     protected occluderPlugin: OccluderMaskPlugin = new OccluderMaskPlugin();
@@ -45,6 +48,7 @@ export class AvatarRenderer extends PoseRenderer {
     protected hasPatchedHat = false;
 
     protected gl?: WebGLRenderingContext;
+    protected noPoseCounter = 0;
 
     // Constructor
     constructor(
@@ -66,6 +70,7 @@ export class AvatarRenderer extends PoseRenderer {
         this.bgReplace = new BgReplacePlugin(.1, .3, mirror);
         this.smoothMask = new MaskSmoothPlugin(3);
         this.morphPlugin = new MaskMorphPlugin(-2);
+        this.ui = UIController.getInstance();
         
         this.addPlugin(this.aligner); 
         this.addPlugin(this.maskPlugin);           
@@ -174,6 +179,14 @@ export class AvatarRenderer extends PoseRenderer {
     
     // Set outfit to render
     async setOutfit(url: string, outfit?: OutfitParams) {
+        const { scene } = this;
+        if (!scene)
+            return;
+        this.url = url;
+        this.outfit = outfit;
+        const gltf = await SceneLoader.
+            LoadAssetContainerAsync("", url, scene, undefined, ".glb");
+        
         if (this.model) {
             const model = this.model;
             this.patchPlugin.setParts([], []); // Clear old parts            
@@ -190,13 +203,7 @@ export class AvatarRenderer extends PoseRenderer {
             _hatUrl = this.hatUrl;
         }
         delete this.model;
-        const { scene } = this;
-        if (!scene)
-            return;
-        this.url = url;
-        this.outfit = outfit;
-        const gltf = await SceneLoader.
-            LoadAssetContainerAsync("", url, scene, undefined, ".glb");
+        
         const model = gltf.meshes.find((m) => m.id === "__root__");
         if (!model)
             return;
@@ -245,19 +252,22 @@ export class AvatarRenderer extends PoseRenderer {
     }
 
     async setHat(url?: string, hatModel?: AbstractMesh) {
-        if (this.hat) {
-            this.hat.dispose();
-        }
-        delete this.hat;
-        
+                
         if(hatModel)
         {
-            this.hat = hatModel;
-        }
-        
+            if (this.hat) {
+                this.hat.dispose();                
+                delete this.hat;
+                this.hat = hatModel;
+            }
+        }        
         else if (url) {
             // Load hat model using Babylon.js
             const gltf = await SceneLoader.ImportMeshAsync("", url, "", this.scene);
+            if (this.hat) {
+                this.hat.dispose();
+                delete this.hat;
+            }
             this.hat = gltf.meshes.find((m) => m.id === "__root__");
             this.hatUrl = url;
             if (!this.hat) {
@@ -294,21 +304,38 @@ export class AvatarRenderer extends PoseRenderer {
         return "XL";
     }    
     
-    // Update
     async update(result: PoseResult, stream: HTMLCanvasElement): Promise<void> {
         const pose = result.poses[0];
+    
         if (!pose) {
-            return super.update(result, stream);
-        }      
+            this.ui.backgroundImg.style.zIndex = "1"; 
+            // Start a counter to track frames without a pose
+            if (!this.noPoseCounter ) this.noPoseCounter = 0;
+            console.log(this.ui.isHoldingScreen);
+            if(!this.ui.isHoldingScreen)
+                this.noPoseCounter++;
 
+            // If the counter reaches a threshold, activate holding-screen
+            if (this.noPoseCounter > 120) { // Adjust threshold as needed
+                this.ui.showHoldingScreen();              
+                console.log("Back to start screen");                
+                this.noPoseCounter = 0;
+            }               
+            return super.update(result, stream);
+        }
+        
+        this.noPoseCounter = 0;
+        // ✅ Pose detected: ensure background plugin is active
         this.lastPose = pose;
-          // Patch only once after pose is detected and hat is present
+    
         if (!this.hasPatchedHat && this.hat) {
             this.updatePatchParts(true);
-        }        
-
+        }    
+        this.ui.backgroundImg.style.zIndex = "-30";
+    
+    
     await super.update(result, stream);
-
+    
     if (this.lastPose?.maskTex) {
         const maskTex = this.lastPose.maskTex;
         if (!this.gl) throw new Error('WebGL context not available');

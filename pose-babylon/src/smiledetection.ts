@@ -1,7 +1,18 @@
 import { NormalizedLandmarkList } from '@mediapipe/face_mesh';
-export { isPositiveReaction };
+export { isPositiveReaction, exportSmileLogAsCSV };
 
 let smileHistory: number[] = [];
+
+const smileLog: { timestamp: string, duration: number }[] = [];
+let smileStartTime: number = 0;
+let smileEndCandidateTime: number | null = null;
+let smiling = false;
+const SMILE_HOLD_DURATION = 1500; // ms
+const SMILE_MERGE_WINDOW = 3000;  // ms
+const totalSmiles = smileLog.length;
+const firstSmile = smileLog[0]?.timestamp || "N/A";
+const lastSmile = smileLog[smileLog.length - 1]?.timestamp || "N/A";
+
 const historySize = 5;
 
 function isPositiveReaction(landmarks: NormalizedLandmarkList): boolean {
@@ -40,15 +51,83 @@ function isPositiveReaction(landmarks: NormalizedLandmarkList): boolean {
     smileHistory.reduce((a, b) => a + b, 0) / smileHistory.length;
 
   // Tweaked thresholds after normalization
-  const smileCurveThreshold = 0.015;
-  const laughHeightThreshold = 0.07;
-  const laughWidthThreshold = 1.4;
+  const smileCurveThreshold = 0.012;
+  const laughHeightThreshold = .8;
+  const laughWidthThreshold = .8;
 
   const isSmileOnly = avgSmileCurve > smileCurveThreshold;
   const isLaugh =
-    isSmileOnly &&
     normalizedMouthHeight > laughHeightThreshold &&
-    normalizedMouthWidth > laughWidthThreshold;
-
+    normalizedMouthWidth > laughWidthThreshold;   
+    SmileLog(isSmileOnly || isLaugh);
   return isSmileOnly || isLaugh;
 }
+function SmileLog(isSmiling: boolean) {
+  const now = Date.now();
+
+  if (isSmiling) {
+    if (!smiling) {
+      // New smile started
+      smiling = true;
+      smileStartTime = now;
+      smileEndCandidateTime = null;
+    } else if (smileEndCandidateTime) {
+      // Smile resumed within merge window
+      const gap = now - smileEndCandidateTime;
+      if (gap <= SMILE_MERGE_WINDOW) {
+        console.log("🙂 Smile resumed, merging...");
+        smileEndCandidateTime = null;
+      } else {
+        // Treat as new smile
+        smileStartTime = now;
+      }
+    }
+  } else {
+    if (smiling && !smileEndCandidateTime) {
+      // First frame we lose smile — start waiting
+      smileEndCandidateTime = now;
+      return;
+    }
+
+    if (smiling && smileEndCandidateTime && now - smileEndCandidateTime > SMILE_MERGE_WINDOW) {
+      // Smile has definitely ended
+      const duration = smileEndCandidateTime - smileStartTime;
+      if (duration >= SMILE_HOLD_DURATION) {
+        const timestamp = new Date(smileEndCandidateTime).toISOString();
+        smileLog.push({ timestamp, duration });
+        console.log(`✅ Smile confirmed and logged. Duration: ${duration}ms at ${timestamp}`);
+      } else {
+        console.log("😐 Smile too short, discarded.");
+      }
+
+      // Reset
+      smiling = false;
+      smileStartTime = 0;
+      smileEndCandidateTime = null;
+    }
+  }
+}
+
+function exportSmileLogAsCSV() {
+  if (smileLog.length === 0) {
+    alert("No smiles to export yet!");
+    return;
+  }
+
+  const headers = ["Timestamp", "Duration"];
+  const rows = smileLog.map(entry => [entry.timestamp, entry.duration]);
+  const csvContent =
+    [headers, ...rows].map(e => e.join(",")).join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `smile_log_${Date.now()}.csv`);
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
