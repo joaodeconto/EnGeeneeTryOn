@@ -32,14 +32,29 @@ export const outfitMap: {
             occluders: [/Head$/, /Body/, /Bottom/],
             hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Headwear/]
         }
-    }    
-}
+    },
+    onesie: {
+        file: "./Models/onesie.glb", avatar: false,
+        outfit: {
+            occluders: [/Head$/, /Body/, /Bottom/],
+            hidden: [/Eye/, /Teeth/]
+        }
+    },
+    jacket: {
+        file: "./Models/jacket.glb", avatar: false,
+        outfit: {
+            occluders: [/Head$/, /Body/, /Bottom/],
+            hidden: [/Eye/, /Teeth/, /Footwear/, /Glasses/]
+        }
+    }
+}    
 
-export const hatMap: {[key: string]: {file: string}} =
+
+export const hatMap: { [key: string]: { file: string } } =
 {
     dadA: {
-        file: "./Models/dadA.glb"        
-    },    
+        file: "./Models/dadA.glb"
+    },
     dadB: {
         file: "./Models/dadB.glb"
     },
@@ -48,17 +63,17 @@ export const hatMap: {[key: string]: {file: string}} =
     },
     painterB: {
         file: "./Models/painterB.glb"
-    },        
+    },
     noHat: {
         file: "./Models/noHat.glb"
-    }        
+    }
 }
 
-export const bgMap: {[key: string]: {file: string}} =
+export const bgMap: { [key: string]: { file: string } } =
 {
     bg1: {
-        file: "./Neutral/BG_3.jpeg"        
-    },    
+        file: "./Neutral/BG_3.jpeg"
+    },
     bg2: {
         file: "./Neutral/BG_2.jpeg"
     },

@@ -1,5 +1,5 @@
 
-import { PoseRenderer, PoseAlignPlugin, OccluderMaskPlugin, OccluderMaterial, BodypartPatchPlugin} from "@geenee/bodyrenderers-babylon";
+import { PoseRenderer, PoseAlignPlugin, OccluderMaskPlugin, OccluderMaterial, BodypartPatchPlugin } from "@geenee/bodyrenderers-babylon";
 import { OutfitParams, MaskMorphPlugin, MaskUploadPlugin, BgReplacePlugin, BgBlurPlugin, MaskSmoothPlugin, PoseTuneParams } from "@geenee/bodyrenderers-common";
 import { Pose, PoseResult } from "@geenee/bodyprocessors";
 import { CanvasMode, ImageTexture } from "@geenee/armature";
@@ -31,7 +31,7 @@ export class AvatarRenderer extends PoseRenderer {
     protected occluderPlugin: OccluderMaskPlugin = new OccluderMaskPlugin();
     protected maskPlugin: MaskUploadPlugin = new MaskUploadPlugin();
     protected bgPlugin: BgBlurPlugin = new BgBlurPlugin();
-    protected patchPlugin: BodypartPatchPlugin ;
+    protected patchPlugin: BodypartPatchPlugin;
     protected smoothMask: MaskSmoothPlugin;
     protected bgBlur: BgBlurPlugin; // Add blur plugin
     protected bgReplace: BgReplacePlugin; // Add background replace plugin
@@ -41,14 +41,17 @@ export class AvatarRenderer extends PoseRenderer {
     protected hat?: AbstractMesh;
     protected isBlur?: boolean;
 
-    protected lastPose?: Pose;
-    protected topHead?: AbstractMesh;
-    
+    public lastPose?: Pose;
+    public topHead?: AbstractMesh;
+
     protected sizeTextEl = document.getElementById("size-text");
     protected hasPatchedHat = false;
 
     protected gl?: WebGLRenderingContext;
     protected noPoseCounter = 0;
+    protected noPoseDelay = 1000; // Number of frames to wait before showing holding screen
+
+    private hasScanned = false;
 
     // Constructor
     constructor(
@@ -57,36 +60,36 @@ export class AvatarRenderer extends PoseRenderer {
         mirror?: boolean,
         protected url = "onesie.glb",
         protected outfit?: OutfitParams,
-        protected bgUrl?: string,        
-        protected tuneParams?: PoseTuneParams,        
+        protected bgUrl?: string,
+        protected tuneParams?: PoseTuneParams,
         protected hatUrl?: string,
         protected hatModel?: AbstractMesh) {
         super(container, mode, mirror);
 
         this.gl = this.renderer?._gl as WebGLRenderingContext;
-        this.aligner = new PoseAlignPlugin(this.model, {scaleLimbs: true});
-        this.patchPlugin = new BodypartPatchPlugin(.01,256);
-        this.bgBlur = new BgBlurPlugin(6,.4);         
+        this.aligner = new PoseAlignPlugin(this.model, { scaleLimbs: true });
+        this.patchPlugin = new BodypartPatchPlugin(.01, 256);
+        this.bgBlur = new BgBlurPlugin(6, .4);
         this.bgReplace = new BgReplacePlugin(.1, .3, mirror);
         this.smoothMask = new MaskSmoothPlugin(3);
         this.morphPlugin = new MaskMorphPlugin(-2);
         this.ui = UIController.getInstance();
-        
-        this.addPlugin(this.aligner); 
-        this.addPlugin(this.maskPlugin);           
-        this.addPlugin(this.smoothMask);      
-        this.addPlugin(this.morphPlugin);  
-        this.addPlugin(this.patchPlugin);         
-        this.addPlugin(this.bgReplace);        
-         
+
+        this.addPlugin(this.aligner);
+        this.addPlugin(this.maskPlugin);
+        this.addPlugin(this.smoothMask);
+        this.addPlugin(this.morphPlugin);
+        this.addPlugin(this.patchPlugin);
+        this.addPlugin(this.bgReplace);
+
     }
 
     async toggleBgMode(enable: boolean) {
         if (enable) {
             this.isBlur = true;            
-            this.removePlugin(this.bgReplace);
             this.addPlugin(this.bgBlur);
-        } else if (this.isBlur) {            
+            this.removePlugin(this.bgReplace);
+        } else if (this.isBlur) {
             this.isBlur = false;
             this.addPlugin(this.bgReplace);
             this.removePlugin(this.bgBlur);
@@ -103,7 +106,7 @@ export class AvatarRenderer extends PoseRenderer {
 
     // Setup scene
     protected async setupScene(scene: Scene) {
-        
+
         // Lightning
         const directUp = new DirectionalLight(
             "DirectLightUp", new Vector3(0.5, -1, -0.2), scene);
@@ -124,7 +127,7 @@ export class AvatarRenderer extends PoseRenderer {
         });
         // Model
         await this.setModel(this.url);
-        if(this.hatUrl) {
+        if (this.hatUrl) {
             await this.setHat(this.hatUrl);
         }
         if (this.bgUrl) {
@@ -141,12 +144,12 @@ export class AvatarRenderer extends PoseRenderer {
     //PatchParts
     protected updatePatchParts(includeHat = true) {
         if (!this.patchPlugin || !this.model) return;
-    
+
         const childMeshes = this.model.getChildMeshes();
-    
+
         // Start with cloth patches
         const patchParts = childMeshes.filter((m) => /cloth/i.test(m.name));
-    
+
         // Optionally patch the hat       
         if (includeHat && this.hat) {
             const hatMeshes = [this.hat, ...this.hat.getChildMeshes(true)];
@@ -167,16 +170,16 @@ export class AvatarRenderer extends PoseRenderer {
         if (keepParts.length === 0) {
             return;
         }
-        
-        console.log("keep parts:", keepParts.map(p => p.name));        
+
+        console.log("keep parts:", keepParts.map(p => p.name));
         console.log("Patch parts:", patchParts.map(p => p.name));
 
         this.patchPlugin.setParts(patchParts, keepParts);
-        
+
         if (includeHat)
             this.hasPatchedHat = true;
     }
-    
+
     // Set outfit to render
     async setOutfit(url: string, outfit?: OutfitParams) {
         const { scene } = this;
@@ -186,7 +189,7 @@ export class AvatarRenderer extends PoseRenderer {
         this.outfit = outfit;
         const gltf = await SceneLoader.
             LoadAssetContainerAsync("", url, scene, undefined, ".glb");
-        
+
         if (this.model) {
             const model = this.model;
             this.patchPlugin.setParts([], []); // Clear old parts            
@@ -197,13 +200,12 @@ export class AvatarRenderer extends PoseRenderer {
         }
         let _hasHat = false;
         let _hatUrl = undefined;
-        if(this.hat)
-        {
+        if (this.hat) {
             _hasHat = true;
             _hatUrl = this.hatUrl;
         }
         delete this.model;
-        
+
         const model = gltf.meshes.find((m) => m.id === "__root__");
         if (!model)
             return;
@@ -228,39 +230,63 @@ export class AvatarRenderer extends PoseRenderer {
         meshes.forEach((m) => m.receiveShadows = true);
         this.shadowers.forEach((s) => s.addShadowCaster(model));
         this.model = model;
-        if(_hasHat)
+        if (_hasHat)
             await this.setHat(_hatUrl);
 
         if (this.patchPlugin && this.model) {
             this.updatePatchParts(_hasHat);
-        }        
+        }
     }
 
-    async setBG(file?: string) {
+    async setBG(file: string) {
         if (!file) {
-            console.error("Background file is undefined.");
-            return;
+          console.error("Background file is undefined.");
+          return;
         }
-        // Example: update a background image element
-        const bgElement = document.getElementById("background");
-        if (bgElement) {
-            bgElement.style.backgroundImage = `url(${file})`;
-        } else {
-            console.warn("Background element not found.");
+      
+        const bg = document.getElementById("background");
+        if (!bg) {
+          console.warn("Background element not found.");
+          return;
         }
-        // Additional logic to update the scene if needed.
-    }
+      
+        const layer1 = bg.querySelector<HTMLDivElement>(".layer1")!;
+        const layer2 = bg.querySelector<HTMLDivElement>(".layer2")!;
+      
+        // 1. put the new image on the hidden layer
+        layer2.style.backgroundImage = `url(${file})`;
+      
+        // 2. force a reflow so the transition will fire
+        void layer2.offsetWidth;
+      
+        // 3. fade in layer2, fade out layer1
+        layer2.style.opacity = "1";
+        layer1.style.opacity = "0";
+      
+        // 4. wait for the transition to finish
+        await new Promise<void>(resolve => {
+          layer2.addEventListener(
+            "transitionend",
+            () => resolve(),
+            { once: true }
+          );
+        });
+      
+        // 5. swap roles: move the new image to layer1, reset layer2
+        layer1.style.backgroundImage = `url(${file})`;
+        layer1.style.opacity = "1";
+        layer2.style.opacity = "0";
+      }
 
     async setHat(url?: string, hatModel?: AbstractMesh) {
-                
-        if(hatModel)
-        {
+
+        if (hatModel) {
             if (this.hat) {
-                this.hat.dispose();                
+                this.hat.dispose();
                 delete this.hat;
                 this.hat = hatModel;
             }
-        }        
+        }
         else if (url) {
             // Load hat model using Babylon.js
             const gltf = await SceneLoader.ImportMeshAsync("", url, "", this.scene);
@@ -275,25 +301,24 @@ export class AvatarRenderer extends PoseRenderer {
                 return;
             }
         }
-    
+
         if (!this.model) {
             console.warn("Character model not loaded yet.");
             return;
         }
-    
-         // Find the head bone
-         this.topHead = this.scene?.getNodeByName("Head") as AbstractMesh;
-        
+
+        // Find the head bone
+        this.topHead = this.scene?.getNodeByName("Head") as AbstractMesh;
+
         if (!this.topHead) {
             console.error("Head bone not found!");
             return;
         }
-        
-        if(this.hat)
-        {
+
+        if (this.hat) {
             this.hat.parent = this.topHead;
-            this.hat.position.set(0, 0.106, 0.041); // Adjust as needed
-            this.hat.scaling.set(.88, .88, .88); // Adjust scale if needed               
+            this.hat.position.set(0, 0.106, 0.047); // Adjust as needed
+            this.hat.scaling.set(.9, .9, .95); // Adjust scale if needed               
             this.hasPatchedHat = false;
         }
 
@@ -302,180 +327,139 @@ export class AvatarRenderer extends PoseRenderer {
         if (height < 300) return chestWidth < 60 ? "XS" : "S";
         if (height < 400) return chestWidth < 70 ? "M" : "L";
         return "XL";
-    }    
-    
+    }
+
     async update(result: PoseResult, stream: HTMLCanvasElement): Promise<void> {
-        const pose = result.poses[0];
-    
+        const pose = result.poses[0];        
+
         if (!pose) {
-            this.ui.backgroundImg.style.zIndex = "1"; 
+            if(!this.isBlur)
+                this.ui.backgroundImg.style.zIndex = "1";
+            this.hasScanned = false; // ← reset scan flag
             // Start a counter to track frames without a pose
-            if (!this.noPoseCounter ) this.noPoseCounter = 0;
+            if (!this.noPoseCounter) this.noPoseCounter = 0;
             console.log(this.ui.isHoldingScreen);
-            if(!this.ui.isHoldingScreen)
+            if (!this.ui.isHoldingScreen)
                 this.noPoseCounter++;
 
             // If the counter reaches a threshold, activate holding-screen
-            if (this.noPoseCounter > 120) { // Adjust threshold as needed
-                this.ui.showHoldingScreen();              
-                console.log("Back to start screen");                
+            if (this.noPoseCounter > this.noPoseDelay) { // Adjust threshold as needed
+                this.ui.showHoldingScreen();
+                console.log("Back to start screen");
                 this.noPoseCounter = 0;
-            }               
+            }
             return super.update(result, stream);
         }
-        
+        //console.log(pose.points.hipL.visibility);
         this.noPoseCounter = 0;
         // ✅ Pose detected: ensure background plugin is active
+
         this.lastPose = pose;
-    
+        if (!this.hasScanned && !this.ui.isHoldingScreen) {
+            this.ui.showScanAnimation(2000); // 3 seconds
+            this.hasScanned = true;
+            console.log("Scan animation triggered.");
+        }
+
         if (!this.hasPatchedHat && this.hat) {
             this.updatePatchParts(true);
-        }    
+        }
+
         this.ui.backgroundImg.style.zIndex = "-30";
-    
-    
-    await super.update(result, stream);
-    
-    if (this.lastPose?.maskTex) {
-        const maskTex = this.lastPose.maskTex;
-        if (!this.gl) throw new Error('WebGL context not available');
-    
-        const maskTexture = maskTex.texture as WebGLTexture;
-        const maskWidth = maskTex.size.width;
-        const maskHeight = maskTex.size.height;
-    
-        const canvasHeight = stream.height;
-    
-        // Set up framebuffer to read from texture
-        const framebuffer = this.gl.createFramebuffer();
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer);
-        this.gl.framebufferTexture2D(
-            this.gl.FRAMEBUFFER,
-            this.gl.COLOR_ATTACHMENT0,
-            this.gl.TEXTURE_2D,
-            maskTexture,
-            0
-        );
-        const sizeTextEl = document.getElementById("size-text");
 
-        function updateSuggestedSize(size: string) {
-        if (sizeTextEl) {
-            sizeTextEl.textContent = `Suggested Size: ${size}`;
-        }
-        }
+        await super.update(result, stream);
 
-    
-        const pixels = new Uint8Array(maskWidth * maskHeight * 4);
-        this.gl.readPixels(0, 0, maskWidth, maskHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
-    
-        this.gl.deleteFramebuffer(framebuffer);
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-    
-        const toTextureY = (canvasY: number) => {
-            const aspectRatio = maskWidth / maskHeight;
-            const scaledY = canvasY * (maskHeight / canvasHeight);
-            return Math.floor(maskHeight - scaledY - 1);
-        };
-    
-        // Scan a row of pixels and measure width where R > 128
-        const measureWidthAt = (textureY: number) => {
-            let left = maskWidth, right = 0;
+        if (this.lastPose?.maskTex) {
+            const maskTex = this.lastPose.maskTex;
+            if (!this.gl) throw new Error('WebGL context not available');
 
-            for (let x = 0; x < maskWidth; x++) {
-                const idx = (textureY * maskWidth + x) * 4;
-                const r = pixels[idx];
-                if (r > 128) {
-                    if (x < left) left = x;
-                    if (x > right) right = x;
+            const maskTexture = maskTex.texture as WebGLTexture;
+            const maskWidth = maskTex.size.width;
+            const maskHeight = maskTex.size.height;
+
+            const canvasHeight = stream.height;
+
+            // Set up framebuffer to read from texture
+            const framebuffer = this.gl.createFramebuffer();
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer);
+            this.gl.framebufferTexture2D(
+                this.gl.FRAMEBUFFER,
+                this.gl.COLOR_ATTACHMENT0,
+                this.gl.TEXTURE_2D,
+                maskTexture,
+                0
+            );
+            const sizeTextEl = document.getElementById("size-text");
+
+            function updateSuggestedSize(size: string) {
+                if (sizeTextEl) {
+                    sizeTextEl.textContent = `Suggested Size: ${size}`;
                 }
             }
 
-            const visible = right > left;
-            return visible ? right - left : 0;
-        };    
 
-        try {
+            const pixels = new Uint8Array(maskWidth * maskHeight * 4);
+            this.gl.readPixels(0, 0, maskWidth, maskHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
 
-            const pose = this.lastPose;    
-            const waistYNormalized = pose.points.hipL.pixel?.[1];    
-            const noseYNormalized = pose.points.nose.pixel?.[1];
+            this.gl.deleteFramebuffer(framebuffer);
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
-            const noseYmetric = pose.points.nose.metric?.[1];
-            const waistYmetric = pose.points.hipL.metric?.[1];
+            const toTextureY = (canvasY: number) => {
+                const aspectRatio = maskWidth / maskHeight;
+                const scaledY = canvasY * (maskHeight / canvasHeight);
+                return Math.floor(maskHeight - scaledY - 1);
+            };
 
-            const waistYTex = (waistYNormalized * maskHeight);
-            const noseYTex =  noseYNormalized*maskHeight;
+            // Scan a row of pixels and measure width where R > 128
+            const measureWidthAt = (textureY: number) => {
+                let left = maskWidth, right = 0;
 
-            const waistWidth = measureWidthAt(toTextureY(waistYTex));
-
-            const metricHeight =  pose.points.ankleL?.metric[1] - pose.points.nose.metric[1] ;
-    
-            if(waistWidth > 10)
-            {
-                //this.topHead?.getAbsolutePosition()
-                console.log('Body Measurements:');
-                console.log(waistYNormalized, waistYTex, metricHeight, );
-                console.log(`Waist: ${waistWidth}px (${(waistWidth).toFixed(1)} cm)`);
-                let suggestedSize = "M";
-
-                if (waistWidth < 20) suggestedSize = "XS";
-                else if (waistWidth < 30) suggestedSize = "S";
-                else if (waistWidth < 50) suggestedSize = "M";
-                else if (waistWidth < 60) suggestedSize = "L";
-                else suggestedSize = "XL";
-                updateSuggestedSize(suggestedSize);
-            }
-            // Create a canvas for visualization
-            const debugCanvas = (() => {
-                const element = document.getElementById('debug-canvas');
-                if (element instanceof HTMLCanvasElement) {
-                    return element;
+                for (let x = 0; x < maskWidth; x++) {
+                    const idx = (textureY * maskWidth + x) * 4;
+                    const r = pixels[idx];
+                    if (r > 128) {
+                        if (x < left) left = x;
+                        if (x > right) right = x;
+                    }
                 }
-                const c = document.createElement('canvas');
-                c.id = 'debug-canvas';
-                c.style.position = 'absolute';
-                c.style.top = '0';
-                c.style.left = '0';
-                c.style.zIndex = '999';
-                c.style.border = '1px solid red';
-                document.body.appendChild(c);
-                return c;
-            })();
 
-            debugCanvas.width = maskWidth;
-            debugCanvas.height = maskHeight;
+                const visible = right > left;
+                return visible ? right - left : 0;
+            };
 
-            const ctx = debugCanvas.getContext('2d');
-            if (!ctx) throw new Error('Could not get canvas 2D context');
+            try {
+                const pose = this.lastPose;
+                const waistYNormalized = pose.points.hipL.pixel?.[1];
+                const noseYNormalized = pose.points.nose.pixel?.[1];
+                const noseYmetric = pose.points.nose.metric?.[1];
+                const waistYmetric = pose.points.hipL.metric?.[1];
+                const waistYTex = (waistYNormalized * maskHeight);
+                const noseYTex = noseYNormalized * maskHeight;
+                const waistWidth = measureWidthAt(toTextureY(waistYTex));
+                const metricHeight = pose.points.ankleL?.metric[1] - pose.points.nose.metric[1];
 
-                // Convert raw RGBA pixel data to ImageData and put on canvas
-                const imgData = new ImageData(new Uint8ClampedArray(pixels), maskWidth, maskHeight);
-                ctx.putImageData(imgData, 0, 0);
+                if (waistWidth > 10) {
+                    //this.topHead?.getAbsolutePosition()
+                    //console.log('Body Measurements:');
+                    //console.log(waistYNormalized, waistYTex, metricHeight, );
+                    //console.log(`Waist: ${waistWidth}px (${(waistWidth).toFixed(1)} cm)`);
+                    let suggestedSize = "M";
 
-                ctx.strokeStyle = 'lime';
-                ctx.lineWidth = 2;
+                    if (waistWidth < 20) suggestedSize = "XS";
+                    else if (waistWidth < 30) suggestedSize = "S";
+                    else if (waistWidth < 50) suggestedSize = "M";
+                    else if (waistWidth < 60) suggestedSize = "L";
+                    else suggestedSize = "XL";
+                    updateSuggestedSize(suggestedSize);
+                }
+            }
 
-                ctx.beginPath();
-                ctx.moveTo(0, waistYTex);
-                ctx.lineTo(maskWidth, waistYTex);
-                ctx.stroke();
 
-                ctx.beginPath();
-                ctx.moveTo(0, noseYTex);
-                ctx.lineTo(maskWidth, noseYTex);
-                ctx.stroke();
-
-                ctx.fillStyle = 'lime';
-                ctx.font = '16px sans-serif';
-                ctx.fillText('Waist', 10, waistYTex - 5);                
-                ctx.fillText(metricHeight.toFixed(2), 10, noseYTex - 5);            
-            } 
-            
             catch (error) {
                 console.error('Measurement error:', error);
             }
         }
-    
+
     }
 }
 

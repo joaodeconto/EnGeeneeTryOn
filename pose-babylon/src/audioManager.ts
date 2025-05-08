@@ -1,15 +1,19 @@
 export class AudioManager {
     private bgAudio: HTMLAudioElement;
     private sfxClick: HTMLAudioElement;
+    private longClick: HTMLAudioElement;
     private isMuted: boolean = false;
   
-    constructor(bgPath: string, clickPath: string) {
-      this.bgAudio = new Audio(bgPath);
-      this.bgAudio.loop = true;
-      this.bgAudio.volume = 0.5;
-  
+    constructor(bgPath: string, clickPath: string, longClickPath: string) {
+      this.longClick = new Audio(longClickPath);
+      this.bgAudio = new Audio(bgPath);      
       this.sfxClick = new Audio(clickPath);
+
+      this.bgAudio.loop = true;
+
+      this.bgAudio.volume = 0.5;  
       this.sfxClick.volume = 1.0;
+      this.longClick.volume = 1.0;
     }
   
     playBgMusic() {
@@ -28,6 +32,13 @@ export class AudioManager {
         this.sfxClick.play().catch(err => console.warn("SFX play failed:", err));
       }
     }
+
+    playLongClickSfx() {
+      if (!this.isMuted) {
+        this.longClick.currentTime = 0;
+        this.longClick.play().catch(err => console.warn("longClick play failed:", err));
+      }
+    }
   
     mute() {
       this.isMuted = true;
@@ -39,6 +50,7 @@ export class AudioManager {
       this.isMuted = false;
       this.bgAudio.muted = false;
       this.sfxClick.muted = false;
+      this.longClick.muted = false;
     }
   
     toggleMute() {
@@ -48,6 +60,7 @@ export class AudioManager {
     setVolume(bgVol: number, sfxVol: number) {
       this.bgAudio.volume = bgVol;
       this.sfxClick.volume = sfxVol;
+      this.longClick.volume = sfxVol;
     }
   }
   
