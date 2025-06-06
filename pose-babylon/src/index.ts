@@ -1,5 +1,4 @@
-import { PoseEngine, PoseResult } from "@geenee/bodyprocessors";
-import { Recorder } from "@geenee/armature";
+import { PoseEngine} from "@geenee/bodyprocessors";
 import { AvatarRenderer } from "./avatarrenderer";
 import { outfitMap, hatMap, bgMap } from "./modelMap";
 import { SmileDetector } from "./smiledetection";
@@ -37,7 +36,7 @@ const avatarRenderer = new AvatarRenderer(
   avatar ? undefined : outfitMap[outfitModel].outfit,
   bgUrl,
   undefined,
-  hatMap[hatModel].file
+  hatModel,
 );
 
 function createSpinner(): HTMLElement {
@@ -136,7 +135,8 @@ async function main() {
     ui.hatButtons,
     hatMap,
     async value => {
-      hatModel = value; await avatarRenderer.setHat(hatMap[value].file);
+      hatModel = value; 
+      await avatarRenderer.setHat(value);
     });
   bindCarousel(
     ui.bgButtons,

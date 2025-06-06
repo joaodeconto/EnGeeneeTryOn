@@ -30,11 +30,11 @@ export class SmileDetector {
   private smileEndCandidateTime: number | null = null;
 
   constructor(options: SmileDetectorOptions = {}) {
-    this.historySize         = options.historySize ?? 5;
-    this.smileHoldDuration   = options.smileHoldDuration ?? 1500;
-    this.smileMergeWindow    = options.smileMergeWindow ?? 3000;
+    this.historySize = options.historySize ?? 5;
+    this.smileHoldDuration = options.smileHoldDuration ?? 1500;
+    this.smileMergeWindow = options.smileMergeWindow ?? 3000;
     this.smileCurveThreshold = options.smileCurveThreshold ?? 0.012;
-    this.laughHeightThreshold= options.laughHeightThreshold ?? 0.35;
+    this.laughHeightThreshold = options.laughHeightThreshold ?? 0.35;
     this.laughWidthThreshold = options.laughWidthThreshold ?? 0.35;
   }
 
@@ -44,15 +44,15 @@ export class SmileDetector {
   public processLandmarks(landmarks: NormalizedLandmarkList): boolean {
     const now = Date.now();
     // Extract key points
-    const leftCorner  = landmarks[61];
+    const leftCorner = landmarks[61];
     const rightCorner = landmarks[291];
-    const upperLip    = landmarks[13];
-    const lowerLip    = landmarks[14];
+    const upperLip = landmarks[13];
+    const lowerLip = landmarks[14];
 
     // Face width proxy
-    const templeLeft  = landmarks[234];
+    const templeLeft = landmarks[234];
     const templeRight = landmarks[454];
-    const faceWidth   = Math.hypot(
+    const faceWidth = Math.hypot(
       templeRight.x - templeLeft.x,
       templeRight.y - templeLeft.y
     );
@@ -62,18 +62,18 @@ export class SmileDetector {
       lowerLip.x - upperLip.x,
       lowerLip.y - upperLip.y
     );
-    const mouthWidth  = Math.hypot(
+    const mouthWidth = Math.hypot(
       rightCorner.x - leftCorner.x,
       rightCorner.y - leftCorner.y
     );
 
     const normalizedHeight = mouthHeight / faceWidth;
-    const normalizedWidth  = mouthWidth  / faceWidth;
+    const normalizedWidth = mouthWidth / faceWidth;
 
     // Smile curvature
-    const leftCurve  = (upperLip.y - leftCorner.y)  / faceWidth;
+    const leftCurve = (upperLip.y - leftCorner.y) / faceWidth;
     const rightCurve = (upperLip.y - rightCorner.y) / faceWidth;
-    const avgCurve   = (leftCurve + rightCurve) / 2;
+    const avgCurve = (leftCurve + rightCurve) / 2;
 
     // Update history
     this.smileHistory.push(avgCurve);
@@ -111,8 +111,8 @@ export class SmileDetector {
         if (gap > this.smileMergeWindow) {
           const duration = this.smileEndCandidateTime - this.smileStartTime;
           if (duration >= this.smileHoldDuration) {
-        this.smileLog.push({ timestamp: new Date(this.smileEndCandidateTime).toISOString(), duration });
-        console.log(`Smile logged: Start=${new Date(this.smileStartTime).toISOString()}, End=${new Date(this.smileEndCandidateTime).toISOString()}, Duration=${duration}ms`);
+            this.smileLog.push({ timestamp: new Date(this.smileEndCandidateTime).toISOString(), duration });
+            console.log(`Smile logged: Start=${new Date(this.smileStartTime).toISOString()}, End=${new Date(this.smileEndCandidateTime).toISOString()}, Duration=${duration}ms`);
           }
           // reset
           this.smiling = false;
@@ -141,16 +141,31 @@ export class SmileDetector {
       return;
     }
 
-    const headers = ['Timestamp', 'Duration'];
-    const rows = this.smileLog.map(e => [e.timestamp, e.duration.toString()]);
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const headers = [
+      'Smile Timestamp (ISO)',
+      'Smile Duration (seconds)',
+      'Smile Count'
+    ];
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href   = url;
+    const rows = this.smileLog.map(entry => {
+      const seconds = (entry.duration / 1000).toFixed(2);
+      return [entry.timestamp, seconds, ''];
+    });
+
+    const totalSmiles = this.smileLog.length;
+    const totalDuration = this.smileLog.reduce((sum, entry) => sum + entry.duration, 0);
+    const totalDurationSeconds = (totalDuration / 1000).toFixed(2);
+
+    const totalRow = ['TOTAL', totalDurationSeconds, totalSmiles.toString()];
+
+    const csvContent = [headers, ...rows, totalRow].map(r => r.join(',')).join('\n');
+
+    this.smileLog = [];
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
     a.download = filename;
-    a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -1,3 +1,4 @@
+import { Vector3 } from "@babylonjs/core";
 import { OutfitParams } from "@geenee/bodyrenderers-common";
 export const outfitMap: {
     [key: string]: {
@@ -36,7 +37,7 @@ export const outfitMap: {
     onesie: {
         file: "./Models/onesie.glb", avatar: false,
         outfit: {
-            occluders: [/Head$/, /Body/, /Bottom/],
+            occluders: [/Head$/, /Body/],
             hidden: [/Eye/, /Teeth/]
         }
     },
@@ -46,26 +47,46 @@ export const outfitMap: {
             occluders: [/Head$/, /Body/, /Bottom/],
             hidden: [/Eye/, /Teeth/, /Footwear/, /Glasses/]
         }
+    },
+     piastriSuit: {
+        file: "./Models/piastri_suit.glb", avatar: false,
+        outfit: {
+            occluders: [/Head$/, /Body/],
+            hidden: [/Eye/, /Teeth/]
+        }
     }
 }    
 
 
-export const hatMap: { [key: string]: { file: string } } =
+export const hatMap: { [key: string]: { file: string, offset?: Vector3, scale?: Vector3 } } =
 {
     dadA: {
-        file: "./Models/dadA.glb"
+        file: "./Models/dadA.glb",
+        offset: new Vector3(0, 0.106, 0.04),
+        scale: new Vector3(.9, .9, 1)
     },
     dadB: {
-        file: "./Models/dadB.glb"
+        file: "./Models/dadB.glb",
+        offset: new Vector3(0, 0.106, 0.04),
+        scale: new Vector3(.9, .9, 1)
     },
     painterA: {
-        file: "./Models/painterA.glb"
+        file: "./Models/painterA.glb",
+        offset: new Vector3(0, 0.106, 0.04),
+        scale: new Vector3(.9, .9, 1)
     },
     painterB: {
-        file: "./Models/painterB.glb"
+        file: "./Models/painterB.glb",
+        offset: new Vector3(0, 0.106, 0.04),
+        scale: new Vector3(.9, .9, 1)
+    },
+    piastriHelmet: {
+        file: "./Models/piastri_hat.glb",
+        offset: new Vector3(0,0.106,0.04),
+        scale: new Vector3(.8, .8, .8)
     },
     noHat: {
-        file: "./Models/noHat.glb"
+        file: "./Models/noHat.glb",
     }
 }
 
@@ -80,6 +101,10 @@ export const bgMap: { [key: string]: { file: string } } =
     bg3: {
         file: "./Neutral/BG_1.jpeg"
     },
+    bg4: {
+        file: "./Neutral/BG_4.png"
+    },
+
     noBg: {
         file: "./Neutral/No_BG_Neutral.png"
     }

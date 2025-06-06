@@ -12,6 +12,8 @@ import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator"
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { UIController } from "./uiController";
+import { detectArmsUp } from "./poseDetector";
+import { outfitMap, hatMap, bgMap } from "./modelMap";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 import "@babylonjs/loaders/glTF/2.0";
@@ -52,6 +54,7 @@ export class AvatarRenderer extends PoseRenderer {
     protected noPoseDelay = 1000; // Number of frames to wait before showing holding screen
 
     private hasScanned = false;
+    private handsUp = false;
 
     // Constructor
     constructor(
@@ -69,7 +72,7 @@ export class AvatarRenderer extends PoseRenderer {
         this.gl = this.renderer?._gl as WebGLRenderingContext;
         this.aligner = new PoseAlignPlugin(this.model, { scaleLimbs: true });
         this.patchPlugin = new BodypartPatchPlugin(.01, 256);
-        this.bgBlur = new BgBlurPlugin(6, .4);
+        this.bgBlur = new BgBlurPlugin(2, .4);
         this.bgReplace = new BgReplacePlugin(.1, .3, mirror);
         this.smoothMask = new MaskSmoothPlugin(3);
         this.morphPlugin = new MaskMorphPlugin(-2);
@@ -86,13 +89,16 @@ export class AvatarRenderer extends PoseRenderer {
 
     async toggleBgMode(enable: boolean) {
         if (enable) {
-            this.isBlur = true;            
+            this.isBlur = true;
             this.addPlugin(this.bgBlur);
             this.removePlugin(this.bgReplace);
+            this.removePlugin(this.patchPlugin);
         } else if (this.isBlur) {
             this.isBlur = false;
+            this.addPlugin(this.patchPlugin);
             this.addPlugin(this.bgReplace);
             this.removePlugin(this.bgBlur);
+
         }
     }
 
@@ -125,6 +131,19 @@ export class AvatarRenderer extends PoseRenderer {
             light.autoCalcShadowZBounds = true;
             this.shadowers.push(shadower);
         });
+
+        // Text model
+        const gltf = await SceneLoader.
+            LoadAssetContainerAsync("./", "text.glb", scene);
+        const textMesh = gltf.meshes.find((m) => m.id === "Text");
+        if (textMesh) {
+            textMesh.scaling.setAll(0.075);
+            textMesh.rotate(Vector3.Up(), Math.PI);
+            textMesh.rotate(Vector3.Right(), Math.PI / 2);
+        }
+        this.textModel = gltf.meshes.find((m) => m.id === "__root__");
+        gltf.addAllToScene();
+
         // Model
         await this.setModel(this.url);
         if (this.hatUrl) {
@@ -230,7 +249,7 @@ export class AvatarRenderer extends PoseRenderer {
         meshes.forEach((m) => m.receiveShadows = true);
         this.shadowers.forEach((s) => s.addShadowCaster(model));
         this.model = model;
-        if (_hasHat)
+        if (_hasHat && _hatUrl)
             await this.setHat(_hatUrl);
 
         if (this.patchPlugin && this.model) {
@@ -240,66 +259,63 @@ export class AvatarRenderer extends PoseRenderer {
 
     async setBG(file: string) {
         if (!file) {
-          console.error("Background file is undefined.");
-          return;
+            console.error("Background file is undefined.");
+            return;
         }
-      
+
         const bg = document.getElementById("background");
         if (!bg) {
-          console.warn("Background element not found.");
-          return;
+            console.warn("Background element not found.");
+            return;
         }
-      
+
         const layer1 = bg.querySelector<HTMLDivElement>(".layer1")!;
         const layer2 = bg.querySelector<HTMLDivElement>(".layer2")!;
-      
+
         // 1. put the new image on the hidden layer
         layer2.style.backgroundImage = `url(${file})`;
-      
+
         // 2. force a reflow so the transition will fire
         void layer2.offsetWidth;
-      
+
         // 3. fade in layer2, fade out layer1
         layer2.style.opacity = "1";
         layer1.style.opacity = "0";
-      
+
         // 4. wait for the transition to finish
         await new Promise<void>(resolve => {
-          layer2.addEventListener(
-            "transitionend",
-            () => resolve(),
-            { once: true }
-          );
+            layer2.addEventListener(
+                "transitionend",
+                () => resolve(),
+                { once: true }
+            );
         });
-      
+
         // 5. swap roles: move the new image to layer1, reset layer2
         layer1.style.backgroundImage = `url(${file})`;
         layer1.style.opacity = "1";
         layer2.style.opacity = "0";
-      }
+    }
 
-    async setHat(url?: string, hatModel?: AbstractMesh) {
+    async setHat(url: string) {
+        
+        const meshUrl = hatMap[url].file;
+        const offset = hatMap[url].offset;
+        const scale = hatMap[url].scale;
 
-        if (hatModel) {
-            if (this.hat) {
-                this.hat.dispose();
-                delete this.hat;
-                this.hat = hatModel;
-            }
+        const gltf = await SceneLoader.ImportMeshAsync("", meshUrl, "", this.scene);
+        
+        if (this.hat) {
+            this.hat.dispose();
+            delete this.hat;
         }
-        else if (url) {
-            // Load hat model using Babylon.js
-            const gltf = await SceneLoader.ImportMeshAsync("", url, "", this.scene);
-            if (this.hat) {
-                this.hat.dispose();
-                delete this.hat;
-            }
-            this.hat = gltf.meshes.find((m) => m.id === "__root__");
-            this.hatUrl = url;
-            if (!this.hat) {
-                console.error("Hat model not found in the loaded GLTF file.");
-                return;
-            }
+
+        this.hat = gltf.meshes.find((m) => m.id === "__root__");
+        this.hatUrl = url;
+
+        if (!this.hat) {
+            console.error("Hat model not found in the loaded GLTF file.");
+            return;
         }
 
         if (!this.model) {
@@ -317,8 +333,10 @@ export class AvatarRenderer extends PoseRenderer {
 
         if (this.hat) {
             this.hat.parent = this.topHead;
-            this.hat.position.set(0, 0.106, 0.047); // Adjust as needed
-            this.hat.scaling.set(.9, .9, .95); // Adjust scale if needed               
+            if(offset)
+                this.hat.position.set(offset._x, offset._y, offset._z); // Adjust as needed
+            if(scale)
+                this.hat.scaling.set(scale._x, scale._y, scale._z); // Adjust scale if needed               
             this.hasPatchedHat = false;
         }
 
@@ -330,10 +348,11 @@ export class AvatarRenderer extends PoseRenderer {
     }
 
     async update(result: PoseResult, stream: HTMLCanvasElement): Promise<void> {
-        const pose = result.poses[0];        
+        const pose = result.poses[0];
 
         if (!pose) {
-            if(!this.isBlur)
+            this.handsUp = false;
+            if (!this.isBlur)
                 this.ui.backgroundImg.style.zIndex = "1";
             this.hasScanned = false; // ← reset scan flag
             // Start a counter to track frames without a pose
@@ -352,7 +371,18 @@ export class AvatarRenderer extends PoseRenderer {
         }
         //console.log(pose.points.hipL.visibility);
         this.noPoseCounter = 0;
-        // ✅ Pose detected: ensure background plugin is active
+
+        // Position text model
+        this.handsUp = detectArmsUp(pose);
+        const { textModel } = this;
+        if (textModel) {
+            const wristL = new Vector3(...pose.points.wristL.metric);
+            const wristR = new Vector3(...pose.points.wristR.metric);
+            const position = Vector3.Lerp(wristL, wristR, 0.5);
+            textModel.position = position;
+            textModel.rotation._y = Math.PI;
+            textModel.setEnabled(this.handsUp);
+        }
 
         this.lastPose = pose;
         if (!this.hasScanned && !this.ui.isHoldingScreen) {
