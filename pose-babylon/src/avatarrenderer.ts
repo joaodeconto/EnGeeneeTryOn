@@ -400,25 +400,6 @@ export class AvatarRenderer extends PoseRenderer {
         await super.update(result, stream);
 
         if (this.lastPose?.maskTex) {
-            const maskTex = this.lastPose.maskTex;
-            if (!this.gl) throw new Error('WebGL context not available');
-
-            const maskTexture = maskTex.texture as WebGLTexture;
-            const maskWidth = maskTex.size.width;
-            const maskHeight = maskTex.size.height;
-
-            const canvasHeight = stream.height;
-
-            // Set up framebuffer to read from texture
-            const framebuffer = this.gl.createFramebuffer();
-            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer);
-            this.gl.framebufferTexture2D(
-                this.gl.FRAMEBUFFER,
-                this.gl.COLOR_ATTACHMENT0,
-                this.gl.TEXTURE_2D,
-                maskTexture,
-                0
-            );
             const sizeTextEl = document.getElementById("size-text");
 
             function updateSuggestedSize(size: string) {
@@ -427,63 +408,33 @@ export class AvatarRenderer extends PoseRenderer {
                 }
             }
 
-
-            const pixels = new Uint8Array(maskWidth * maskHeight * 4);
-            this.gl.readPixels(0, 0, maskWidth, maskHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
-
-            this.gl.deleteFramebuffer(framebuffer);
-            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-
-            const toTextureY = (canvasY: number) => {
-                const aspectRatio = maskWidth / maskHeight;
-                const scaledY = canvasY * (maskHeight / canvasHeight);
-                return Math.floor(maskHeight - scaledY - 1);
-            };
-
-            // Scan a row of pixels and measure width where R > 128
-            const measureWidthAt = (textureY: number) => {
-                let left = maskWidth, right = 0;
-
-                for (let x = 0; x < maskWidth; x++) {
-                    const idx = (textureY * maskWidth + x) * 4;
-                    const r = pixels[idx];
-                    if (r > 128) {
-                        if (x < left) left = x;
-                        if (x > right) right = x;
-                    }
-                }
-
-                const visible = right > left;
-                return visible ? right - left : 0;
-            };
-
             try {
                 const pose = this.lastPose;
-                const waistYNormalized = pose.points.hipL.pixel?.[1];
-                const noseYNormalized = pose.points.nose.pixel?.[1];
-                const noseYmetric = pose.points.nose.metric?.[1];
-                const waistYmetric = pose.points.hipL.metric?.[1];
-                const waistYTex = (waistYNormalized * maskHeight);
-                const noseYTex = noseYNormalized * maskHeight;
-                const waistWidth = measureWidthAt(toTextureY(waistYTex));
-                const metricHeight = pose.points.ankleL?.metric[1] - pose.points.nose.metric[1];
+                if (!pose) return;
 
-                if (waistWidth > 10) {
-                    //this.topHead?.getAbsolutePosition()
-                    //console.log('Body Measurements:');
-                    //console.log(waistYNormalized, waistYTex, metricHeight, );
-                    //console.log(`Waist: ${waistWidth}px (${(waistWidth).toFixed(1)} cm)`);
+                const nose = pose.points.nose.metric;
+                const ankleL = pose.points.ankleL.metric;
+                const ankleR = pose.points.ankleR.metric;
+                const hipL = pose.points.hipL.metric;
+                const hipR = pose.points.hipR.metric;
+
+                const ankleAvgY = (ankleL[1] + ankleR[1]) / 2;
+                const height = Math.abs(ankleAvgY - nose[1]);
+                const hipWidth = Math.abs(hipR[0] - hipL[0]);
+
+                if (height > 0) {
+                    const ratio = hipWidth / height;
+
                     let suggestedSize = "M";
-
-                    if (waistWidth < 20) suggestedSize = "XS";
-                    else if (waistWidth < 30) suggestedSize = "S";
-                    else if (waistWidth < 50) suggestedSize = "M";
-                    else if (waistWidth < 60) suggestedSize = "L";
+                    if (ratio < 0.15) suggestedSize = "XS";
+                    else if (ratio < 0.19) suggestedSize = "S";
+                    else if (ratio < 0.23) suggestedSize = "M";
+                    else if (ratio < 0.27) suggestedSize = "L";
                     else suggestedSize = "XL";
+
                     updateSuggestedSize(suggestedSize);
                 }
             }
-
 
             catch (error) {
                 console.error('Measurement error:', error);
