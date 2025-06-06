@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Step-by-Step Instructions to Run the Application
 Install Node.js
 Visit Node.js Official Website and download the LTS version (Recommended for most users).
@@ -25,3 +26,6 @@ Access the Application
 Open your browser (Chrome/Firefox/Edge) and visit:
 http://localhost:3000
 The application should now be running.
+=======
+# EnGeeneeTryOn
+>>>>>>> c46ae8f6a4c3e8eec1390f6959649cb382d2996e
