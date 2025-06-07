@@ -19,6 +19,7 @@ export class SmileDetector {
   private smileHoldDuration: number;
   private smileMergeWindow: number;
   private smileCurveThreshold: number;
+  
   private laughHeightThreshold: number;
   private laughWidthThreshold: number;
 

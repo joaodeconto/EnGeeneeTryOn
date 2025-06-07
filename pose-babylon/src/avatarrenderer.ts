@@ -13,6 +13,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { UIController } from "./uiController";
 import { detectArmsUp } from "./poseDetector";
+import { MeasurementService, SimplePose } from "./MeasurementService";
 import { outfitMap, hatMap, bgMap } from "./modelMap";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
@@ -49,7 +50,7 @@ export class AvatarRenderer extends PoseRenderer {
     protected sizeTextEl = document.getElementById("size-text");
     protected hasPatchedHat = false;
 
-    protected gl?: WebGLRenderingContext;
+    protected gl: WebGLRenderingContext;
     protected noPoseCounter = 0;
     protected noPoseDelay = 1000; // Number of frames to wait before showing holding screen
 
@@ -298,13 +299,13 @@ export class AvatarRenderer extends PoseRenderer {
     }
 
     async setHat(url: string) {
-        
+
         const meshUrl = hatMap[url].file;
         const offset = hatMap[url].offset;
         const scale = hatMap[url].scale;
 
         const gltf = await SceneLoader.ImportMeshAsync("", meshUrl, "", this.scene);
-        
+
         if (this.hat) {
             this.hat.dispose();
             delete this.hat;
@@ -333,22 +334,56 @@ export class AvatarRenderer extends PoseRenderer {
 
         if (this.hat) {
             this.hat.parent = this.topHead;
-            if(offset)
+            if (offset)
                 this.hat.position.set(offset._x, offset._y, offset._z); // Adjust as needed
-            if(scale)
+            if (scale)
                 this.hat.scaling.set(scale._x, scale._y, scale._z); // Adjust scale if needed               
             this.hasPatchedHat = false;
         }
 
     }
-    async suggestSize(height: number, chestWidth: number): Promise<string> {
-        if (height < 300) return chestWidth < 60 ? "XS" : "S";
-        if (height < 400) return chestWidth < 70 ? "M" : "L";
-        return "XL";
-    }
 
     async update(result: PoseResult, stream: HTMLCanvasElement): Promise<void> {
         const pose = result.poses[0];
+
+
+        if(this.lastPose){
+
+            const simplePose: SimplePose = {
+            nose: this.lastPose.points.nose,
+            shoulderL: this.lastPose.points.shoulderL,
+            shoulderR: this.lastPose.points.shoulderR,
+            hipL: this.lastPose.points.hipL,
+            hipR: this.lastPose.points.hipR,
+            ankleL: this.lastPose.points.ankleL,      
+            ankleR: this.lastPose.points.ankleR,
+            maskTex: this.lastPose.maskTex            // assume que é { texture, size }
+        };
+
+        try {
+            const { measures, size } = await MeasurementService.measureAndSuggest(
+                simplePose,
+                this.gl,
+                stream.height,
+                stream.width
+            );
+
+            // 4) Atualizar UI
+            const sizeTextEl = document.getElementById("size-text");
+            if (sizeTextEl) {
+                sizeTextEl.textContent = `Tamanho sugerido: ${size}
+          (Altura: ${measures.heightCm.toFixed(1)} cm;
+           Peito: ${measures.chestCm.toFixed(1)} cm;
+           Cintura: ${measures.waistCm.toFixed(1)} cm)`;
+            }
+
+            // 5) (Opcional) Desenhar debug overlay
+            //this.drawDebugOverlay(simplePose, measures, size, stream);
+
+        } catch (err) {
+            console.warn("Não foi possível medir/sugerir tamanho:", err);
+        }
+        }
 
         if (!pose) {
             this.handsUp = false;
@@ -369,6 +404,7 @@ export class AvatarRenderer extends PoseRenderer {
             }
             return super.update(result, stream);
         }
+
         //console.log(pose.points.hipL.visibility);
         this.noPoseCounter = 0;
 
@@ -395,52 +431,10 @@ export class AvatarRenderer extends PoseRenderer {
             this.updatePatchParts(true);
         }
 
-        this.ui.backgroundImg.style.zIndex = "-30";
+        this.ui.backgroundImg.style.zIndex = "-30";     
 
         await super.update(result, stream);
-
-        if (this.lastPose?.maskTex) {
-            const sizeTextEl = document.getElementById("size-text");
-
-            function updateSuggestedSize(size: string) {
-                if (sizeTextEl) {
-                    sizeTextEl.textContent = `Suggested Size: ${size}`;
-                }
-            }
-
-            try {
-                const pose = this.lastPose;
-                if (!pose) return;
-
-                const nose = pose.points.nose.metric;
-                const ankleL = pose.points.ankleL.metric;
-                const ankleR = pose.points.ankleR.metric;
-                const hipL = pose.points.hipL.metric;
-                const hipR = pose.points.hipR.metric;
-
-                const ankleAvgY = (ankleL[1] + ankleR[1]) / 2;
-                const height = Math.abs(ankleAvgY - nose[1]);
-                const hipWidth = Math.abs(hipR[0] - hipL[0]);
-
-                if (height > 0) {
-                    const ratio = hipWidth / height;
-
-                    let suggestedSize = "M";
-                    if (ratio < 0.15) suggestedSize = "XS";
-                    else if (ratio < 0.19) suggestedSize = "S";
-                    else if (ratio < 0.23) suggestedSize = "M";
-                    else if (ratio < 0.27) suggestedSize = "L";
-                    else suggestedSize = "XL";
-
-                    updateSuggestedSize(suggestedSize);
-                }
-            }
-
-            catch (error) {
-                console.error('Measurement error:', error);
-            }
-        }
-
-    }
+    }   
 }
 
+    
