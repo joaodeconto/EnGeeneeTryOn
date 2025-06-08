@@ -34,8 +34,6 @@ export function detectArmsUp(pose: any): boolean {
     if (cosMin < 0.7)
         return false;
     // Process the pose parameter here
-    console.log("Received pose:", pose);
-
     // Return a boolean value based on some condition
     return pose !== null && pose !== undefined;
 }

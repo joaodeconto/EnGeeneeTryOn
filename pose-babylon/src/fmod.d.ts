@@ -1,4 +1,4 @@
-declare namespace FMOD {
+export namespace FMOD {
     namespace Studio {
       /** the actual exported factory function */
       function System_create(): Promise<System>;
@@ -20,5 +20,14 @@ declare namespace FMOD {
         release(): Promise<void>;
       }
     }
+    const INITFLAGS: { NORMAL: number };
   }
+
+declare global {
+    interface Window {
+        FMOD: typeof FMOD;
+    }
+}
+
+export {}
   

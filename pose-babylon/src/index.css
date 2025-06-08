@@ -80,19 +80,21 @@ body {
 }
 
 .top-menu{
-  position: absolute; 
+  position: absolute;
   top: 5%;
-  width: 60rem;        /* adjust to your desired size */
+  right: 5%;
+  width: auto;
   height: auto;
   z-index: 99999;       /* above other elements */
 }
-/* container for both buttons */
+/* container for buttons */
 .orientation,
-.export-csv {
+.options-toggle,
+.option-btn {
   width: 10rem;
   height: 10rem;
   border-radius: calc(0.5rem);
-  color: hsla(0, 0%, 98%, 0);  
+  color: hsla(0, 0%, 98%, 0);
   opacity: 0.1;
   background-image: url("/shot.svg");
   background-size: contain;
@@ -103,9 +105,20 @@ body {
   background-image: url("/switch.svg");
 }
 .orientation:hover,
-.export-csv:hover {
+.options-toggle:hover,
+.option-btn:hover {
   opacity: 0.5;
   background-color: hsla(0, 0%, 100%, 0.349);
+}
+
+.options-toggle{
+  background-image: url("/apparel.svg");
+}
+
+.options-menu{
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 
@@ -375,11 +388,6 @@ body {
   100%  { background-position: 0 110%; opacity: 1; }
 }
 
-/* push the second button down below the first */
-.export-csv {
-  top: calc(1rem + 2.5rem + 0.5rem);
-  /* 1rem from top + height of orientation button (2.5rem) + gap */
-}
 
 #background {
   position: relative;

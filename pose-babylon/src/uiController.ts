@@ -12,6 +12,10 @@ export class UIController {
     public scannerFrame: HTMLElement;
     //public recordButton: HTMLButtonElement;
     public exportButton: HTMLButtonElement;
+    public optionsToggle: HTMLButtonElement;
+    public optionsMenu: HTMLElement;
+    public calibrateButton: HTMLButtonElement;
+    public switchCameraButton: HTMLButtonElement;
     public outfitButtons: NodeListOf<HTMLInputElement>;
     public hatButtons: NodeListOf<HTMLInputElement>;
     public bgButtons: NodeListOf<HTMLInputElement>;
@@ -53,6 +57,10 @@ export class UIController {
         const transposeBtn = document.getElementById("orientation");
         //const recordBtn = document.getElementById("record");
         const exportBtn = document.getElementById("export-csv");
+        const optionsToggle = document.getElementById("options-toggle");
+        const optionsMenu = document.getElementById("options-menu");
+        const calibrateBtn = document.getElementById("calibrate");
+        const cameraBtn = document.getElementById("switch-camera");
         const outfitBtns = document.getElementsByName("model");
         const hatBtns = document.getElementsByName("hat");
         const bgBtns = document.getElementsByName("bg");
@@ -60,7 +68,7 @@ export class UIController {
         const scanEl = document.getElementById('scanner-overlay');
         const scanFrameEl = document.getElementById('scanner-frame');
         // Validate mandatory elements
-        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !welcomeEl) {
+        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !welcomeEl || !optionsToggle || !optionsMenu || !calibrateBtn || !cameraBtn) {
             throw new Error("Missing one or more UI elements in DOM");
         }
         // Type checks
@@ -69,6 +77,9 @@ export class UIController {
         if (!(transposeBtn instanceof HTMLButtonElement)) throw new Error("#orientation is not a HTMLButtonElement");
         //if (!(recordBtn instanceof HTMLButtonElement)) throw new Error("#record is not a HTMLButtonElement");
         if (!(exportBtn instanceof HTMLButtonElement)) throw new Error("#export-csv is not a HTMLButtonElement");
+        if (!(optionsToggle instanceof HTMLButtonElement)) throw new Error("#options-toggle is not a HTMLButtonElement");
+        if (!(calibrateBtn instanceof HTMLButtonElement)) throw new Error("#calibrate is not a HTMLButtonElement");
+        if (!(cameraBtn instanceof HTMLButtonElement)) throw new Error("#switch-camera is not a HTMLButtonElement");
 
         // Assign references
         this.backgroundImg = bgi;
@@ -81,6 +92,10 @@ export class UIController {
         this.transposeButton = transposeBtn as HTMLButtonElement;
         //this.recordButton        = recordBtn as HTMLButtonElement;
         this.exportButton = exportBtn as HTMLButtonElement;
+        this.optionsToggle = optionsToggle as HTMLButtonElement;
+        this.optionsMenu = optionsMenu as HTMLElement;
+        this.calibrateButton = calibrateBtn as HTMLButtonElement;
+        this.switchCameraButton = cameraBtn as HTMLButtonElement;
         this.outfitButtons = outfitBtns as NodeListOf<HTMLInputElement>;
         this.hatButtons = hatBtns as NodeListOf<HTMLInputElement>;
         this.bgButtons = bgBtns as NodeListOf<HTMLInputElement>;
@@ -166,7 +181,6 @@ export class UIController {
             this.welcomeMessage.classList.remove("fade-out");
             this.welcomeMessage.classList.add("fade-in");
             this.isWelcomeVisible = true;
-            console.log("welcomemesge on");
         }
     }
 
@@ -180,7 +194,6 @@ export class UIController {
                 this.welcomeMessage.style.display = "none";
                 this.welcomeMessage.removeEventListener("animationend", onEnd);
                 this.isWelcomeVisible = false;
-                console.log("welcomemesge false");
             };
             this.welcomeMessage.addEventListener("animationend", onEnd);
         }
@@ -220,6 +233,10 @@ export class UIController {
         }
         this.scanner.classList.add('hidden');
         this.scannerFrame.classList.add('hidden');
+    }
+
+    public toggleOptions() {
+        this.optionsMenu.classList.toggle('hidden');
     }
 
     public updateCarouselTextures(buttons: NodeListOf<HTMLInputElement>) {
