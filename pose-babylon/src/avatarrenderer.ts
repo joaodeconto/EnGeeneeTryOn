@@ -13,7 +13,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { UIController } from "./uiController";
 import { detectArmsUp } from "./poseDetector";
-import { MeasurementService, SimplePose } from "./MeasurementService";
+import { MeasurementService, SimplePose } from "./measurementService";
 import { outfitMap, hatMap, bgMap } from "./modelMap";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";

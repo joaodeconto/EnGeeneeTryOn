@@ -97,7 +97,6 @@ export class UIController {
         if (!(heightMinus instanceof HTMLButtonElement)) throw new Error("#height-minus is not a HTMLButtonElement");
         if (!(optionsClose instanceof HTMLButtonElement)) throw new Error("#options-close is not a HTMLButtonElement");
 
-
         // Assign references
         this.backgroundImg = bgi;
         this.holdingScreen = hs;
@@ -261,6 +260,7 @@ export class UIController {
     public toggleOptions() {
         this.optionsMenu.classList.toggle('hidden');
     }
+
     public updateOrientationLabel(transpose: boolean) {
         this.orientationLabel.textContent = transpose ? 'ON' : 'OFF';
     }
