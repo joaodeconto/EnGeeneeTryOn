@@ -5,3 +5,4 @@ dist/
 /Blender/
 *.log
 /pose-babylon/*.zip
+pose-babylon/tsconfig.tsbuildinfo
