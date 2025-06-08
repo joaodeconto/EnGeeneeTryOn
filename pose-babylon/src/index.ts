@@ -22,6 +22,7 @@ const urlParams = new URLSearchParams(window.location.search);
 let rear = urlParams.has("rear");
 let currentStream: MediaStream | null = null;
 let transpose = true;
+let userHeightCm = 170;
 
 let outfitModel = "polo";
 let hatModel = "dadA";
@@ -92,6 +93,7 @@ function bindTransposeButton() {
     transpose = !transpose;
     audioManager.playClickSfx();
     avatarRenderer.setMirror(!transpose);
+    ui.updateOrientationLabel(transpose);
     await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
     await enginePose.start();
   };
@@ -126,6 +128,24 @@ function bindOptionsToggle() {
   ui.optionsToggle.onclick = () => ui.toggleOptions();
 }
 
+function bindOptionsClose() {
+  ui.optionsClose.onclick = () => ui.toggleOptions();
+}
+
+function bindHeightButtons() {
+  ui.heightPlus.onclick = () => {
+    userHeightCm += 1;
+    ui.updateHeightLabel(userHeightCm);
+  };
+  ui.heightMinus.onclick = () => {
+    if (userHeightCm > 50) {
+      userHeightCm -= 1;
+      ui.updateHeightLabel(userHeightCm);
+    }
+  };
+  ui.updateHeightLabel(userHeightCm);
+}
+
 function bindSwitchCamera() {
   ui.switchCameraButton.onclick = async () => {
     audioManager.playClickSfx();
@@ -142,7 +162,6 @@ function bindCalibrate() {
       alert('Pose not ready for calibration');
       return;
     }
-    const userHeightCm = Number(prompt('Digite sua altura real em centimetros:', '170'));
     if (!userHeightCm || userHeightCm <= 0) {
       alert('Altura invalida.');
       return;
@@ -187,12 +206,17 @@ async function main() {
   if (!ui.container) return;
   await setupCamera();
 
+  ui.updateOrientationLabel(transpose);
+  ui.updateHeightLabel(userHeightCm);
+
   //ui.bindButtonTextureToggle();
   bindStartButton();
   bindTransposeButton();
   bindOptionsToggle();
+  bindOptionsClose();
   bindSwitchCamera();
   bindCalibrate();
+  bindHeightButtons();
   bindExportButton();
   bindCarousel(
     ui.outfitButtons,
