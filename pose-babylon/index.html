@@ -56,10 +56,19 @@
     </div>
 
     <div id="top-menu" class="top-menu">
-        <button id="orientation" class="orientation"></button>
         <button id="options-toggle" class="options-toggle"></button>
         <div id="options-menu" class="options-menu hidden">
-            <button id="calibrate" class="option-btn">Calibrate</button>
+            <button id="options-close" class="option-btn close-btn">X</button>
+            <div class="option-row">
+                <button id="orientation" class="orientation option-btn"></button>
+                <span id="orientation-label" class="option-label">ON</span>
+            </div>
+            <div class="option-row">
+                <button id="calibrate" class="option-btn">Calibrate</button>
+                <button id="height-minus" class="option-btn small">-</button>
+                <span id="height-label" class="option-label">170 cm</span>
+                <button id="height-plus" class="option-btn small">+</button>
+            </div>
             <button id="switch-camera" class="option-btn">Switch Camera</button>
             <button id="export-csv" class="option-btn">Export Smiles</button>
         </div>
