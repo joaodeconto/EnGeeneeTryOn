@@ -113,7 +113,6 @@ export class SmileDetector {
           const duration = this.smileEndCandidateTime - this.smileStartTime;
           if (duration >= this.smileHoldDuration) {
             this.smileLog.push({ timestamp: new Date(this.smileEndCandidateTime).toISOString(), duration });
-            console.log(`Smile logged: Start=${new Date(this.smileStartTime).toISOString()}, End=${new Date(this.smileEndCandidateTime).toISOString()}, Duration=${duration}ms`);
           }
           // reset
           this.smiling = false;

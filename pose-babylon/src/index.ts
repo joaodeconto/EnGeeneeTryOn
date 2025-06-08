@@ -7,6 +7,7 @@ import { Camera } from "@mediapipe/camera_utils";
 import { AudioManager } from "./audioManager";
 import { UIController } from "./uiController";
 import { FmodManager } from "./fmodManager";
+import { MeasurementService } from "./measurementService";
 
 
 const fmod = new FmodManager();
@@ -19,7 +20,9 @@ const token = location.hostname === "localhost" ? "JWHEn64uKNrekP5S8HSUBYrg5JPzY
 const urlParams = new URLSearchParams(window.location.search);
 
 let rear = urlParams.has("rear");
+let currentStream: MediaStream | null = null;
 let transpose = true;
+let userHeightCm = 170;
 
 let outfitModel = "polo";
 let hatModel = "dadA";
@@ -57,8 +60,14 @@ function sleep(ms: number): Promise<void> {
 }
 
 async function setupCamera(): Promise<MediaStream> {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1920, height: 1080 }, audio: false });
+  if (currentStream) {
+    currentStream.getTracks().forEach(t => t.stop());
+  }
+  const facing = rear ? "environment" : "user";
+  const constraints = { video: { width: 1920, height: 1080, facingMode: facing }, audio: false };
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
   ui.video.srcObject = stream;
+  currentStream = stream;
   return new Promise(resolve => {
     ui.video.onloadedmetadata = () => { ui.video.play(); resolve(stream); };
   });
@@ -84,6 +93,7 @@ function bindTransposeButton() {
     transpose = !transpose;
     audioManager.playClickSfx();
     avatarRenderer.setMirror(!transpose);
+    ui.updateOrientationLabel(transpose);
     await enginePose.setup({ size: { width: 1920, height: 1080 }, transpose, rear });
     await enginePose.start();
   };
@@ -113,15 +123,100 @@ function bindExportButton() {
     smileDetector.exportSmileLogAsCSV();
   };
 }
+
+function bindOptionsToggle() {
+  ui.optionsToggle.onclick = () => ui.toggleOptions();
+}
+
+function bindOptionsClose() {
+  ui.optionsClose.onclick = () => ui.toggleOptions();
+}
+
+function bindHeightButtons() {
+  ui.heightPlus.onclick = () => {
+    userHeightCm += 1;
+    ui.updateHeightLabel(userHeightCm);
+  };
+  ui.heightMinus.onclick = () => {
+    if (userHeightCm > 50) {
+      userHeightCm -= 1;
+      ui.updateHeightLabel(userHeightCm);
+    }
+  };
+  ui.updateHeightLabel(userHeightCm);
+}
+
+function bindSwitchCamera() {
+  ui.switchCameraButton.onclick = async () => {
+    audioManager.playClickSfx();
+    rear = !rear;
+    await setupCamera();
+  };
+}
+
+function bindCalibrate() {
+  ui.calibrateButton.onclick = async () => {
+    audioManager.playClickSfx();
+    const pose = (avatarRenderer as any).lastPose as any;
+    if (!pose || !pose.maskTex) {
+      alert('Pose not ready for calibration');
+      return;
+    }
+    if (!userHeightCm || userHeightCm <= 0) {
+      alert('Altura invalida.');
+      return;
+    }
+    const headYnorm = pose.headTop?.pixel ? pose.headTop.pixel[1] : pose.nose.pixel[1] - 0.10;
+    const ankleYnorm = Math.max(pose.ankleL.pixel[1], pose.ankleR.pixel[1]);
+    const canvasH = ui.video.videoHeight;
+    const headYpx = headYnorm * canvasH;
+    const ankleYpx = ankleYnorm * canvasH;
+    const heightPx = Math.abs(ankleYpx - headYpx);
+    if (heightPx < 20) {
+      alert('Figura muito pequena na tela. Afaste-se.');
+      return;
+    }
+    const cmPerPx = userHeightCm / heightPx;
+    const gl = (avatarRenderer as any).gl as WebGLRenderingContext;
+    const { texture, size } = pose.maskTex;
+    const maskW = size.width, maskH = size.height;
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+    const pixels = new Uint8Array(maskW * maskH * 4);
+    gl.readPixels(0, 0, maskW, maskH, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.deleteFramebuffer(fb);
+    const chestYnorm = (pose.shoulderL.pixel[1] + pose.shoulderR.pixel[1]) / 2;
+    const chestYpx = chestYnorm * maskH;
+    const chestYtex = Math.floor(maskH - chestYpx - 1);
+    const chestWidthPx = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, chestYtex);
+    const chestWidthCm = chestWidthPx * cmPerPx;
+    const waistYnorm = (pose.hipL.pixel[1] + pose.hipR.pixel[1]) / 2;
+    const waistYpx = waistYnorm * maskH;
+    const waistYtex = Math.floor(maskH - waistYpx - 1);
+    const waistWidthPx = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, waistYtex);
+    const waistWidthCm = waistWidthPx * cmPerPx;
+    alert(`Calibrado (1px=${cmPerPx.toFixed(3)}cm)\n\nLargura do peito: ${chestWidthCm.toFixed(1)} cm\nLargura da cintura: ${waistWidthCm.toFixed(1)} cm`);
+  };
+}
 async function main() {
 
   //audioManager.playBgMusic();
   if (!ui.container) return;
   await setupCamera();
 
+  ui.updateOrientationLabel(transpose);
+  ui.updateHeightLabel(userHeightCm);
+
   //ui.bindButtonTextureToggle();
   bindStartButton();
   bindTransposeButton();
+  bindOptionsToggle();
+  bindOptionsClose();
+  bindSwitchCamera();
+  bindCalibrate();
+  bindHeightButtons();
   bindExportButton();
   bindCarousel(
     ui.outfitButtons,
