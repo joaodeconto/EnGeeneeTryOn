@@ -73,7 +73,6 @@ export class MeasurementService {
     const dz = sL[2] - sR[2];
     const distShouldersM = Math.sqrt(dx * dx + dy * dy + dz * dz);
     const distShouldersCm = distShouldersM * 100;
-    console.log(distShouldersCm);
 
     // 2. Distância em pixels (tarefas de X,Y vindas da pose)
     //    Supondo que 'x' e 'y' sejam realmente pixels brutos. Se forem normalizados (0..1),
@@ -83,8 +82,6 @@ export class MeasurementService {
     const pxR = pose.shoulderR.pixel![0] * canvasWidth;
     const pyR = pose.shoulderR.pixel![1] * canvasHeight;
     const distShouldersPx = Math.hypot(pxL - pxR, pyL - pyR);
-
-    console.log(pxL);
 
     if (distShouldersPx < 1) {
       throw new Error("Ombros muito próximos em pixels, possível detecção falha.");
@@ -298,7 +295,7 @@ export class MeasurementService {
     gl.deleteFramebuffer(framebuffer);
 
     // 7.3) Calcular cmPerPx (usar ombros)
-    const cmPerPx = this.computeScaleCmPerPx(pose, canvasHeight, canvasWidth);
+    const cmPerPx = this.computeScaleCmPerPx(pose, canvasWidth, canvasHeight);
 
     // 7.4) Medir largura de peito e cintura em cm
     const chestCm = this.measureWidthCm(

@@ -13,7 +13,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { UIController } from "./uiController";
 import { detectArmsUp } from "./poseDetector";
-import { MeasurementService, SimplePose } from "./MeasurementService";
+import { MeasurementService, SimplePose } from "./measurementService";
 import { outfitMap, hatMap, bgMap } from "./modelMap";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
@@ -191,8 +191,7 @@ export class AvatarRenderer extends PoseRenderer {
             return;
         }
 
-        console.log("keep parts:", keepParts.map(p => p.name));
-        console.log("Patch parts:", patchParts.map(p => p.name));
+        // Debug: inspect which parts will be patched
 
         this.patchPlugin.setParts(patchParts, keepParts);
 
@@ -392,14 +391,12 @@ export class AvatarRenderer extends PoseRenderer {
             this.hasScanned = false; // ← reset scan flag
             // Start a counter to track frames without a pose
             if (!this.noPoseCounter) this.noPoseCounter = 0;
-            console.log(this.ui.isHoldingScreen);
             if (!this.ui.isHoldingScreen)
                 this.noPoseCounter++;
 
             // If the counter reaches a threshold, activate holding-screen
             if (this.noPoseCounter > this.noPoseDelay) { // Adjust threshold as needed
                 this.ui.showHoldingScreen();
-                console.log("Back to start screen");
                 this.noPoseCounter = 0;
             }
             return super.update(result, stream);
@@ -424,7 +421,6 @@ export class AvatarRenderer extends PoseRenderer {
         if (!this.hasScanned && !this.ui.isHoldingScreen) {
             this.ui.showScanAnimation(2000); // 3 seconds
             this.hasScanned = true;
-            console.log("Scan animation triggered.");
         }
 
         if (!this.hasPatchedHat && this.hat) {
