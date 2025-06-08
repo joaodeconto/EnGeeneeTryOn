@@ -94,12 +94,12 @@ body {
   width: 10rem;
   height: 10rem;
   border-radius: calc(0.5rem);
-  color: hsla(0, 0%, 98%, 0);
-  opacity: 0.1;
+  color: #fff;
+  opacity: 0.85;
   background-image: url("/shot.svg");
   background-size: contain;
-  background-color: hsla(0, 0%, 100%, 0);
-  z-index: 1000004 ;
+  background-color: rgba(255, 255, 255, 0.1);
+  z-index: 1000004;
 }
 .orientation{
   background-image: url("/switch.svg");
@@ -107,8 +107,8 @@ body {
 .orientation:hover,
 .options-toggle:hover,
 .option-btn:hover {
-  opacity: 0.5;
-  background-color: hsla(0, 0%, 100%, 0.349);
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .options-toggle{
@@ -122,18 +122,21 @@ body {
   transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   padding: 1rem;
   border-radius: 0.5rem;
   z-index: 1000005;
+  width: 18rem;
 }
 
 .option-row{
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .option-label{
