@@ -23,7 +23,7 @@ export class SmileExpressionDetector {
 
     start() {
 
-        console.log('Starting smile detection...');
+        //console.debug('Starting smile detection...');
 
         this.intervalId = window.setInterval(async () => {
             if (!this.video || this.video.readyState < 2) return;
@@ -35,10 +35,10 @@ export class SmileExpressionDetector {
 
                 const happy = result?.expressions?.happy ?? 0;
                 if (happy > this.threshold) {
-                    console.log(`😄 Smile detected! Score: ${happy.toFixed(2)}`);
+                    //console.debug(`😄 Smile detected! Score: ${happy.toFixed(2)}`);
                     this.onSmileDetected?.(happy);
                 } else {
-                    console.log(`😐 No smile. Score: ${happy.toFixed(2)}`);
+                    //console.debug(`😐 No smile. Score: ${happy.toFixed(2)}`);
                 }
             } catch (err) {
                 console.error("🧨 Detection error:", err);

@@ -60,7 +60,23 @@ Key components:
 * **Guided Prompts**: sequential messages guiding user actions.
 * **Calibration Module**: button to input user height for pixel‑to‑cm conversion.
 * **Carousel Selectors**: choose among multiple outfits, hats, and backgrounds.
+
+* **Options Menu**: toggle actions like calibration, camera switching and smile export.
+
 * **Size Estimation Display**: shows calculated clothing size in real time.
+
+---
+
+## Architecture & File Structure
+
+The project is organized inside the `pose-babylon` folder which contains all
+runtime code and assets:
+
+* `src/` – TypeScript sources for rendering, detection and UI logic.
+* `public/` – static files served by Vite including HTML templates and images.
+* `index.html` – entry page bootstrapping the AR mirror.
+
+At the repository root you will find the project README and configuration files.
 
 ---
 
@@ -119,6 +135,16 @@ Key components:
 * **Add More Carousels**: replicate markup under `#outfitButtons` with new `name` attributes.
 * **Integrate New AR SDKs**: replace face/body detection in `index.ts` with your chosen library (e.g., MediaPipe, face-api).
 * **Audio Feedback**: hook custom sounds in `audioManager.ts` for clicks and prompts.
+
+---
+
+## Future Improvements
+
+Planned enhancements include:
+
+* **Performance tuning** for mobile devices.
+* **Expanded garment library** with additional sample models.
+* **Automated calibration** using more precise body metrics.
 
 ---
 
