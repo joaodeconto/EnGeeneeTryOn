@@ -20,6 +20,7 @@ export class UIController {
     public heightMinus: HTMLButtonElement;
     public heightLabel: HTMLElement;
     public orientationLabel: HTMLElement;
+
     public switchCameraButton: HTMLButtonElement;
     public outfitButtons: NodeListOf<HTMLInputElement>;
     public hatButtons: NodeListOf<HTMLInputElement>;
@@ -70,6 +71,7 @@ export class UIController {
         const heightLabel = document.getElementById("height-label");
         const orientationLabel = document.getElementById("orientation-label");
         const optionsClose = document.getElementById("options-close");
+
         const cameraBtn = document.getElementById("switch-camera");
         const outfitBtns = document.getElementsByName("model");
         const hatBtns = document.getElementsByName("hat");
@@ -79,6 +81,7 @@ export class UIController {
         const scanFrameEl = document.getElementById('scanner-frame');
         // Validate mandatory elements
         if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !welcomeEl || !optionsToggle || !optionsMenu || !calibrateBtn || !cameraBtn || !heightPlus || !heightMinus || !heightLabel || !orientationLabel || !optionsClose) {
+
             throw new Error("Missing one or more UI elements in DOM");
         }
         // Type checks
@@ -93,6 +96,7 @@ export class UIController {
         if (!(heightPlus instanceof HTMLButtonElement)) throw new Error("#height-plus is not a HTMLButtonElement");
         if (!(heightMinus instanceof HTMLButtonElement)) throw new Error("#height-minus is not a HTMLButtonElement");
         if (!(optionsClose instanceof HTMLButtonElement)) throw new Error("#options-close is not a HTMLButtonElement");
+
 
         // Assign references
         this.backgroundImg = bgi;
@@ -113,6 +117,7 @@ export class UIController {
         this.heightLabel = heightLabel as HTMLElement;
         this.orientationLabel = orientationLabel as HTMLElement;
         this.optionsClose = optionsClose as HTMLButtonElement;
+
         this.switchCameraButton = cameraBtn as HTMLButtonElement;
         this.outfitButtons = outfitBtns as NodeListOf<HTMLInputElement>;
         this.hatButtons = hatBtns as NodeListOf<HTMLInputElement>;
@@ -256,7 +261,6 @@ export class UIController {
     public toggleOptions() {
         this.optionsMenu.classList.toggle('hidden');
     }
-
     public updateOrientationLabel(transpose: boolean) {
         this.orientationLabel.textContent = transpose ? 'ON' : 'OFF';
     }

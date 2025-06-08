@@ -145,7 +145,6 @@ function bindHeightButtons() {
   };
   ui.updateHeightLabel(userHeightCm);
 }
-
 function bindSwitchCamera() {
   ui.switchCameraButton.onclick = async () => {
     audioManager.playClickSfx();
