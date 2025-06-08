@@ -127,7 +127,6 @@ function bindExportButton() {
 function bindOptionsToggle() {
   ui.optionsToggle.onclick = () => ui.toggleOptions();
 }
-
 function bindOptionsClose() {
   ui.optionsClose.onclick = () => ui.toggleOptions();
 }
