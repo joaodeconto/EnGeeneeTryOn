@@ -14,7 +14,7 @@
 <body>
 
     <div id="loading-screen" class="full-screen loading-screen">
-        <img class="loading-logo" src="/MC_logo_1_2.png" alt="Scan icon" />
+        <img class="loading-logo" src="./UI/MC_logo_1_2.png" alt="Scan icon" />
         <div class="loading-text">Loading...</div>
     </div>
 
@@ -26,9 +26,8 @@
 
     <div id="holding-screen" class="full-screen video-introduction">
         <img id="ball-loop" class="ball-loop" />
-        <img id="ring-loop" class="ring-loop" />
         <video autoplay loop muted playsinline class="video-introduction video">
-            <source src="MC_API_NFT_MirrorBG-FINAL.mp4" type="video/mp4" />
+            <source src="./Video/MC_API_NFT_MirrorBG-FINAL.mp4" type="video/mp4" />
         </video>
         <button id="start-button" class="start-button"></button>
     </div>
@@ -45,7 +44,7 @@
         <div class="bg-layer layer2"></div>
     </div>
 
-    <img id="top-icon" class="top-icon" src="/MC_logo_1_2.png" alt="Scan icon" />
+    <img id="top-icon" class="top-icon" src="./UI/MC_logo_1_2.png" alt="Scan icon" />
 
     <div id="scanner-frame" class="scanner-frame hidden">
         <div id="scanner-overlay" class="scanner-overlay hidden"></div>
@@ -57,21 +56,22 @@
 
     <div id="top-menu" class="top-menu">
         <button id="options-toggle" class="options-toggle"></button>
-        <div id="options-menu" class="options-menu hidden">
-            <button id="options-close" class="option-btn close-btn">X</button>
-            <div class="option-row">
-                <button id="orientation" class="orientation option-btn"></button>
-                <span id="orientation-label" class="option-label">ON</span>
-            </div>
-            <div class="option-row">
-                <button id="calibrate" class="option-btn">Calibrate</button>
-                <button id="height-minus" class="option-btn small">-</button>
-                <span id="height-label" class="option-label">170 cm</span>
-                <button id="height-plus" class="option-btn small">+</button>
-            </div>
-            <button id="switch-camera" class="option-btn">Switch Camera</button>
-            <button id="export-csv" class="option-btn">Export Smiles</button>
+    </div>
+
+    <div id="options-menu" class="options-menu hidden">
+        <button id="options-close" class="option-btn close-btn">X</button>
+        <div class="option-row">
+            <button id="orientation" class="orientation option-btn"></button>
+            <span id="orientation-label" class="option-label">ON</span>
         </div>
+        <div class="option-row">
+            <button id="calibrate" class="option-btn">Calibrate</button>
+            <button id="height-minus" class="option-btn small">-</button>
+            <span id="height-label" class="option-label">170 cm</span>
+            <button id="height-plus" class="option-btn small">+</button>
+        </div>
+        <button id="switch-camera" class="option-btn">Switch Camera</button>
+        <button id="export-csv" class="option-btn">Export Smiles</button>
     </div>
 
 
@@ -79,25 +79,25 @@
         style="position: absolute ;  flex-direction: column; bottom: 30%; right: 10rem;">
 
         <input type="radio" name="model" value="polo" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_Polo.png);" checked=true></input>
+            style="background-image: url(./UI/Btn_Cloth/Polo_Neutral.png);" checked=true></input>
 
         <input type="radio" name="model" value="tee" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_Tee.png);"></input>
+            style="background-image: url(./UI/Btn_Cloth/Tshirt_Neutral.png);"></input>
 
         <input type="radio" name="model" value="quarter" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_Zip.png);"></input>
-
-        <input type="radio" name="model" value="noCloth" class="carousel-item"
-            style="background-image: url(./Neutral/No_Shirt_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_Cloth/Quarter_Zip_Neutral.png);"></input>
 
         <input type="radio" name="model" value="onesie" class="carousel-item"
-            style="background-image: url(./Neutral/Button_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_Cloth/Demo_A_Neutral.png);"></input>
 
         <input type="radio" name="model" value="jacket" class="carousel-item"
-            style="background-image: url(./Neutral/Button_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_Cloth/Demo_B_Neutral.png);"></input>
 
         <input type="radio" name="model" value="piastriSuit" class="carousel-item"
-            style="background-image: url(./Neutral/Button_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_Cloth/F1_Neutral.png);"></input>
+
+        <input type="radio" name="model" value="noCloth" class="carousel-item"
+            style="background-image: url(./UI/Btn_Cloth/No_Shirt_Neutral.png);"></input>
     </div>
 
 
@@ -105,40 +105,46 @@
         style="position: absolute; align-items: center; flex-direction: column; top: 10%; right: 10rem;">
 
         <input type="radio" name="hat" value="dadA" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_EDCW.png);" checked=true></input>
+            style="background-image: url(./UI/Btn_Hat/Dad_White_Neutral.png);" checked=true></input>
 
         <input type="radio" name="hat" value="dadB" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_EDCB.png);"></input>
+            style="background-image: url(./UI/Btn_Hat/Dad_Black_Neutral.png);"></input>
 
         <input type="radio" name="hat" value="painterA" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_PHW.png);"></input>
+            style="background-image: url(./UI/Btn_Hat/Painter_White_Neutral.png);"></input>
 
         <input type="radio" name="hat" value="painterB" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_PHS.png);"></input>
-        
+            style="background-image: url(./UI/Btn_Hat/Painter_Beige_Neutral.png);"></input>
+
         <input type="radio" name="hat" value="piastriHelmet" class="carousel-item"
-            style="background-image: url(./Neutral/Square_Neutral_PHS.png);"></input>
+            style="background-image: url(./UI/Btn_Cloth/F1_Neutral.png);"></input>
 
         <input type="radio" name="hat" value="noHat" class="carousel-item"
-            style="background-image: url(./Neutral/No_Cap_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_Hat/No_Cap_Neutral.png);"></input>
     </div>
 
     <div id="bgButtons" class="carousel" style="position: absolute ; flex-direction: column; bottom: 50%;  left:10rem;">
 
         <input type="radio" name="bg" value="bg1" class="carousel-item"
-            style="background-image: url(./Neutral/BG_1_Neutral.png);" checked=true></input>
+            style="background-image: url(./UI/Btn_BG/Baseball_BG_Neutral.png);" checked=true></input>
 
         <input type="radio" name="bg" value="bg2" class="carousel-item"
-            style="background-image: url(./Neutral/BG_2_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_BG/F1_BG_Neutral.png);"></input>
 
         <input type="radio" name="bg" value="bg3" class="carousel-item"
-            style="background-image: url(./Neutral/BG_3_Neutral.png);"></input>
-            
+            style="background-image: url(./UI/Btn_BG/Football_BG_Neutral.png);"></input>
+
         <input type="radio" name="bg" value="bg4" class="carousel-item"
-            style="background-image: url(./Neutral/BG_3_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_BG/Golf_BG_Neutral.png);"></input>
+
+        <input type="radio" name="bg" value="bg5" class="carousel-item"
+            style="background-image: url(./UI/Btn_BG/Red_Carpet_BG_Neutral.png);"></input>
+
+        <input type="radio" name="bg" value="bg6" class="carousel-item"
+            style="background-image: url(./UI/Btn_BG/Tennis_BG_Neutral.png);"></input>
 
         <input type="radio" name="bg" value="noBg" class="carousel-item"
-            style="background-image: url(./Neutral/No_BG_Neutral.png);"></input>
+            style="background-image: url(./UI/Btn_BG/No_BG_Neutral.png);"></input>
     </div>
 
 

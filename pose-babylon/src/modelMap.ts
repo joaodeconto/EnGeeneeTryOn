@@ -26,14 +26,7 @@ export const outfitMap: {
             occluders: [/Head$/, /Body/, /Bottom/],
             hidden: [/Eye/, /Teeth/, /Footwear/, /Glasses/]
         }
-    },
-    noCloth: {
-        file: "./Models/base.glb", avatar: false,
-        outfit: {
-            occluders: [/Head$/, /Body/, /Bottom/],
-            hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Headwear/]
-        }
-    },
+    },    
     onesie: {
         file: "./Models/onesie.glb", avatar: false,
         outfit: {
@@ -53,6 +46,13 @@ export const outfitMap: {
         outfit: {
             occluders: [/Head$/, /Body/],
             hidden: [/Eye/, /Teeth/]
+        }
+    },
+    noCloth: {
+        file: "./Models/base.glb", avatar: false,
+        outfit: {
+            occluders: [/Head$/, /Body/, /Bottom/],
+            hidden: [/Eye/, /Teeth/, /Bottom/, /Footwear/, /Headwear/]
         }
     }
 }    
@@ -93,19 +93,24 @@ export const hatMap: { [key: string]: { file: string, offset?: Vector3, scale?: 
 export const bgMap: { [key: string]: { file: string } } =
 {
     bg1: {
-        file: "./Neutral/BG_3.jpeg"
+        file: "./UI/BG/Baseball_Background.png"
     },
     bg2: {
-        file: "./Neutral/BG_2.jpeg"
+        file: "./UI/BG/F1_Background.png"
     },
     bg3: {
-        file: "./Neutral/BG_1.jpeg"
+        file: "./UI/BG/Golf_Background.png"
     },
     bg4: {
-        file: "./Neutral/BG_4.png"
+        file: "./UI/BG/Red_Carpet_Background.png"
     },
-
+    bg5: {
+        file: "./UI/BG/Soccer_Background.png"
+    },
+    bg6: {
+        file: "./UI/BG/Tennis_Background.png"
+    },
     noBg: {
-        file: "./Neutral/No_BG_Neutral.png"
+        file: "./UI/BG/No_BG_Neutral.png"
     }
 }

@@ -370,10 +370,10 @@ export class AvatarRenderer extends PoseRenderer {
             // 4) Atualizar UI
             const sizeTextEl = document.getElementById("size-text");
             if (sizeTextEl) {
-                sizeTextEl.textContent = `Tamanho sugerido: ${size}
-          (Altura: ${measures.heightCm.toFixed(1)} cm;
-           Peito: ${measures.chestCm.toFixed(1)} cm;
-           Cintura: ${measures.waistCm.toFixed(1)} cm)`;
+                sizeTextEl.textContent = `Suggested Size: ${size}
+          (Height: ${measures.heightCm.toFixed(1)} cm;
+           Chest: ${measures.chestCm.toFixed(1)} cm;
+           Waist: ${measures.waistCm.toFixed(1)} cm)`;
             }
 
             // 5) (Opcional) Desenhar debug overlay

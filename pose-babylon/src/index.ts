@@ -9,12 +9,11 @@ import { UIController } from "./uiController";
 import { FmodManager } from "./fmodManager";
 import { MeasurementService } from "./measurementService";
 
-
 const fmod = new FmodManager();
 const ui = UIController.getInstance();
 const smileDetector = new SmileDetector();
 const enginePose = new PoseEngine();
-const audioManager = new AudioManager("MC_AudioMASTER_B2B_WanderingSkies.wav", "switch6.ogg", "Mastercard_Audio_ident.mp3");
+const audioManager = new AudioManager("/Audio/MC_AudioMASTER_B2B_WanderingSkies.wav", "/Audio/Pop_UI.wav", "/Audio/Pop_UI.wav");
 const token = location.hostname === "localhost" ? "JWHEn64uKNrekP5S8HSUBYrg5JPzYN8y" : "prod.url_sdk_token";
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -26,9 +25,8 @@ let userHeightCm = 170;
 
 let outfitModel = "polo";
 let hatModel = "dadA";
-let bgModel = "BG_1";
 let avatar = outfitMap[outfitModel].avatar;
-let bgUrl = "./Neutral/BG_3.jpeg";
+let bgUrl = "./UI/BG/Baseball_Background.png";
 
 let lastLandmarks: NormalizedLandmarkList | null = null;
 
@@ -156,7 +154,7 @@ function bindSwitchCamera() {
 function bindCalibrate() {
   ui.calibrateButton.onclick = async () => {
     audioManager.playClickSfx();
-    const pose = (avatarRenderer as any).lastPose as any;
+    const pose = (avatarRenderer).lastPose;
     if (!pose || !pose.maskTex) {
       alert('Pose not ready for calibration');
       return;
@@ -165,8 +163,8 @@ function bindCalibrate() {
       alert('Altura invalida.');
       return;
     }
-    const headYnorm = pose.headTop?.pixel ? pose.headTop.pixel[1] : pose.nose.pixel[1] - 0.10;
-    const ankleYnorm = Math.max(pose.ankleL.pixel[1], pose.ankleR.pixel[1]);
+    const headYnorm = pose.points.nose.pixel[1] - 0.10;
+    const ankleYnorm = Math.max(pose.points.ankleL.pixel[1], pose.points.ankleR.pixel[1]);
     const canvasH = ui.video.videoHeight;
     const headYpx = headYnorm * canvasH;
     const ankleYpx = ankleYnorm * canvasH;
@@ -186,22 +184,21 @@ function bindCalibrate() {
     gl.readPixels(0, 0, maskW, maskH, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.deleteFramebuffer(fb);
-    const chestYnorm = (pose.shoulderL.pixel[1] + pose.shoulderR.pixel[1]) / 2;
+    const chestYnorm = (pose.points.shoulderL.pixel[1] + pose.points.shoulderR.pixel[1]) / 2;
     const chestYpx = chestYnorm * maskH;
     const chestYtex = Math.floor(maskH - chestYpx - 1);
     const chestWidthPx = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, chestYtex);
     const chestWidthCm = chestWidthPx * cmPerPx;
-    const waistYnorm = (pose.hipL.pixel[1] + pose.hipR.pixel[1]) / 2;
+    const waistYnorm = (pose.points.hipL.pixel[1] + pose.points.hipR.pixel[1]) / 2;
     const waistYpx = waistYnorm * maskH;
     const waistYtex = Math.floor(maskH - waistYpx - 1);
     const waistWidthPx = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, waistYtex);
     const waistWidthCm = waistWidthPx * cmPerPx;
-    alert(`Calibrado (1px=${cmPerPx.toFixed(3)}cm)\n\nLargura do peito: ${chestWidthCm.toFixed(1)} cm\nLargura da cintura: ${waistWidthCm.toFixed(1)} cm`);
+    alert(`Calibrated (1px=${cmPerPx.toFixed(3)}cm)\n\nchest: ${chestWidthCm.toFixed(1)} cm\nwaist: ${waistWidthCm.toFixed(1)} cm`);
   };
 }
 async function main() {
 
-  //audioManager.playBgMusic();
   if (!ui.container) return;
   await setupCamera();
 
@@ -236,7 +233,6 @@ async function main() {
     ui.bgButtons,
     bgMap,
     async value => {
-      bgModel = value;
       if (value === "noBg") {
         await avatarRenderer.toggleBgMode(true);
       } else {
@@ -253,6 +249,8 @@ async function main() {
 
   await enginePose.start();
 
+  
+  //audioManager.playBgMusic();
 
   // 1) One FaceMesh instance
   const faceMesh = new FaceMesh({

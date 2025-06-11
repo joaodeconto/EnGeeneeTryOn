@@ -32,8 +32,8 @@ export class UIController {
      */
     public isHoldingScreen: boolean;
     public isWelcomeVisible: boolean;
-    private _stopBallLoop?: () => void;
-    private _stopRingLoop?: () => void;
+    //private _stopBallLoop?: () => void;
+    //private _stopRingLoop?: () => void;
 
     private scanTimeout: number | null = null;
 
@@ -144,6 +144,8 @@ export class UIController {
             this.isHoldingScreen = true;
 
             // if there were previous animations, stop them first
+            
+            /*
             this._stopBallLoop?.();
             this._stopRingLoop?.();
 
@@ -162,6 +164,7 @@ export class UIController {
                 300,
                 24
             );
+            */
         }
     }
 
@@ -169,10 +172,10 @@ export class UIController {
     public hideHoldingScreen() {
         if (this.isHoldingScreen) {
             // stop the animations immediately
-            this._stopBallLoop?.();
-            this._stopRingLoop?.();
-            this._stopBallLoop = undefined;
-            this._stopRingLoop = undefined;
+            //this._stopBallLoop?.();
+            //this._stopRingLoop?.();
+            //this._stopBallLoop = undefined;
+            //this._stopRingLoop = undefined;
 
             this.holdingScreen.classList.remove("fade-in");
             this.holdingScreen.classList.add("fade-out");
@@ -280,7 +283,7 @@ export class UIController {
         })
       }
 
-
+    /*
     public startFrameAnimation(
         imgElementId: string,
         folderPath: string,
@@ -310,4 +313,5 @@ export class UIController {
         // return a stop function
         return () => window.clearInterval(timerId);
     }
+    */
 }

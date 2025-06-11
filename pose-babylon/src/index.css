@@ -6,6 +6,19 @@ body {
   margin: 0;
 }
 
+:root {
+  /* scale values up for high-res displays */
+  --menu-width: clamp(400px, 30vw, 600px);
+  --btn-size: clamp(80px, 10vw, 120px);
+  --font-size: clamp(18px, 2vw, 28px);
+  --gap: clamp(1rem, 2vw, 2rem);
+
+  --bg: rgba(0 0 0 / 0.5);
+  --btn-bg: rgba(255 255 255 / 0.2);
+  --btn-hover: rgba(255 255 255 / 0.35);
+  --border: rgba(255 255 255 / 0.3);
+}
+
 *,
 ::before,
 ::after {
@@ -79,117 +92,177 @@ body {
   pointer-events: none; /* clicks pass through */
 }
 
-.top-menu{
+/* keep the toggle where it belongs */
+.top-menu {
   position: absolute;
-  top: 5%;
-  right: 5%;
-  width: auto;
-  height: auto;
-  z-index: 99999;       /* above other elements */
+  top: 2%;
+  right: 2%;
+  z-index: 9999;
 }
-/* container for buttons */
-.orientation,
-.options-toggle,
+.top-menu .options-toggle {
+  width: var(--btn-size);
+  height: var(--btn-size);
+  background: var(--btn-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.top-menu .options-toggle:hover {
+  background: var(--btn-hover);
+  transform: scale(1.1);
+}
+
+/* **center** the panel in the screen */
+.options-menu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--menu-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  background: var(--bg);
+  backdrop-filter: blur(8px);
+  padding: var(--gap);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0 0 0 / 0.25);
+  z-index: 10000;
+}
+
+/* each line: big icon + text */
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
 .option-btn {
-  width: 10rem;
-  height: 10rem;
-  border-radius: calc(0.5rem);
-  color: #fff;
-  opacity: 0.85;
-  background-image: url("/shot.svg");
-  background-size: contain;
-  background-color: rgba(255, 255, 255, 0.1);
-  z-index: 1000004;
+  width: var(--btn-size);
+  height: var(--btn-size);
+  background: var(--btn-bg);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
 }
-.orientation{
-  background-image: url("/switch.svg");
-}
-.orientation:hover,
-.options-toggle:hover,
 .option-btn:hover {
-  opacity: 1;
-  background-color: rgba(255, 255, 255, 0.2);
+  background: var(--btn-hover);
+  transform: scale(1.1);
 }
 
-.options-toggle{
-  background-image: url("/apparel.svg");
+.option-label {
+  color: #fff;
+  font-size: var(--font-size);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  white-space: nowrap;
 }
 
-.options-menu{
+/* bigger “×” in corner of panel */
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: clamp(40px, 5vw, 60px);
+  height: clamp(40px, 5vw, 60px);
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 36px);
+  cursor: pointer;
+}/* keep the toggle where it belongs */
+.top-menu {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+  z-index: 9999;
+}
+.top-menu .options-toggle {
+  width: var(--btn-size);
+  height: var(--btn-size);
+  background: var(--btn-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.top-menu .options-toggle:hover {
+  background: var(--btn-hover);
+  transform: scale(1.1);
+}
+
+/* **center** the panel in the screen */
+.options-menu {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: var(--menu-width);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  z-index: 1000005;
-  width: 18rem;
+  gap: var(--gap);
+  background: var(--bg);
+  backdrop-filter: blur(8px);
+  padding: var(--gap);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0 0 0 / 0.25);
+  z-index: 10000;
 }
 
-.option-row{
+/* each line: big icon + text */
+.option-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  justify-content: flex-start;
+  gap: var(--gap);
 }
 
-.option-label{
-  color: white;
-  font-size: 1.2rem;
-}
-
-.option-btn.small{
-  width: 4rem;
-  height: 4rem;
-}
-.close-btn{
-  align-self: flex-end;
-}
-
-.options-toggle{
-  background-image: url("/apparel.svg");
-}
-
-.options-menu{
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(0,0,0,0.5);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  z-index: 1000005;
-}
-
-.option-row{
+.option-btn {
+  width: var(--btn-size);
+  height: var(--btn-size);
+  background: var(--btn-bg);
+  border: none;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.option-btn:hover {
+  background: var(--btn-hover);
+  transform: scale(1.1);
 }
 
-.option-label{
-  color: white;
-  font-size: 1.2rem;
+.option-label {
+  color: #fff;
+  font-size: var(--font-size);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  white-space: nowrap;
 }
 
-.option-btn.small{
-  width: 4rem;
-  height: 4rem;
+/* bigger “×” in corner of panel */
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: clamp(40px, 5vw, 60px);
+  height: clamp(40px, 5vw, 60px);
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 36px);
+  cursor: pointer;
 }
-.close-btn{
-  align-self: flex-end;
-}
-
 
 .welcome-screen,
 .instructions-screen {
@@ -279,29 +352,8 @@ body {
   white-space: pre-line;    /* preserve your line breaks */
 }
 
-.ball-loop {
-  width: 70%;
-  height: 70%;
-  object-fit: contain;
-  /* center on screen for demo: */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9998;
-}
 
-.ring-loop {
-  width: 70%;
-  height: 70%;
-  object-fit: contain;
-  /* center on screen for demo: */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9998;
-}
+
 
 .full-screen {
   position: fixed;
@@ -339,42 +391,46 @@ body {
   z-index: 9997;
   pointer-events: none;
 }
-
-.start-button {
+.ball-loop {
   position: fixed;
-  /* Not relative! Matches ball-loop */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 70%;
-  height: 70%;
-  background: transparent;
-  border: none;
+  width: 60vw;           /* width relative to viewport */
+  height: 60vh;          /* give it real height */
+  
+  /* or, if you want to keep aspect ratio instead of fixed height:
+  aspect-ratio: 1 / 1;   /* replace with your image’s W/H ratio */
+  /* then you can use height: auto; or omit it altogether */
+  
+  background: 
+    url("/UI/Get_golf_ready_white.png")   /* make sure this path is correct! */
+    no-repeat 
+    center center 
+    / contain;
+  
+  z-index: 9998;
+  pointer-events: none;
+}
+
+.start-button {
+  position: absolute;
+  /* Not relative! Matches ball-loop */
+  top: 70%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70vw;           /* width relative to viewport */
+  height: 70vh;          /* give it real height */
   cursor: pointer;
   pointer-events: auto;
   z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+   background: 
+    url("/UI/Drive_Style.png")   /* make sure this path is correct! */
+    no-repeat 
+    center center 
+    / contain;  
 }
 
-.start-button::after {
-  content: "PRESS HERE\ATO BEGIN";
-  position: absolute;
-  top: 55%;
-  left: 50%;
-  transform: translate(-50%, 0%);
-  color: #000000;
-  font-family: 'MarkForMCNrw', sans-serif;
-  font-size: clamp(24px, 10vw, 72px);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  white-space: pre;
-  text-align: center;
-  line-height: 1.3;
-}
 
 
 
@@ -597,10 +653,6 @@ input.button[type="checkbox"] {
   appearance: none;
 }
 
-.carousel-item:hover {
-  border-color: hsl(0 0 100%);
-}
-
 .cube-container {
   width: 168px;
   height: 168px;
@@ -758,7 +810,7 @@ input.button[type="checkbox"] {
 /* Book (400) */
 @font-face {
   font-family: 'MarkForMCNrw';
-  src: url('/MarkForMCNrw/MarkForMCNrw-Book.ttf') format('truetype');
+  src: url('/Font/MarkForMCNrw-Book.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -767,7 +819,7 @@ input.button[type="checkbox"] {
 /* Book Italic (400 italic) */
 @font-face {
   font-family: 'MarkForMCNrw';
-  src: url('/MarkForMCNrw/MarkForMCNrw-BookIt.ttf') format('truetype');
+  src: url('/Font/MarkForMCNrw-BookIt.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -776,7 +828,7 @@ input.button[type="checkbox"] {
 /* Bold (700) */
 @font-face {
   font-family: 'MarkForMCNrw';
-  src: url('/MarkForMCNrw/MarkForMCNrw-Bold.ttf') format('truetype');
+  src: url('/Font/MarkForMCNrw-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -785,7 +837,7 @@ input.button[type="checkbox"] {
 /* Bold Italic (700 italic) */
 @font-face {
   font-family: 'MarkForMCNrw';
-  src: url('/MarkForMCNrw/MarkForMCNrw-BoldIt.ttf') format('truetype');
+  src: url('/Font/MarkForMCNrw-BoldIt.ttf') format('truetype');
   font-weight: 700;
   font-style: italic;
   font-display: swap;
@@ -794,7 +846,7 @@ input.button[type="checkbox"] {
 /* Black (900) */
 @font-face {
   font-family: 'MarkForMCNrw';
-  src: url('/MarkForMCNrw/MarkForMCNrw-Black.ttf') format('truetype');
+  src: url('/Font/MarkForMCNrw-Black.ttf') format('truetype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -803,7 +855,7 @@ input.button[type="checkbox"] {
 /* Black Italic (900 italic) */
 @font-face {
   font-family: 'MarkForMCNrw';
-  src: url('/MarkForMCNrw/MarkForMCNrw-BlackIt.ttf') format('truetype');
+  src: url('/Font/MarkForMCNrw-BlackIt.ttf') format('truetype');
   font-weight: 900;
   font-style: italic;
   font-display: swap;

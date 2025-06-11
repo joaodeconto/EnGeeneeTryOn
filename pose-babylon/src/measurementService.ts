@@ -94,7 +94,7 @@ export class MeasurementService {
    * 2) Mede a largura da silhueta (em pixels) numa determinada linha Y da textura
    *    de segmentação, varrendo todo o span horizontal e retornando (right–left).
    *
-   * @param maskPixels – Uint8Array com RGBA de toda a textura
+   * @param maskPixels – Uint8Array com RGBA de toda a texturamn  
    * @param maskW, maskH – dimensões da textura
    * @param textureY – coordenada Y na textura (pixel) onde medir
    * @returns largura em pixels; 0 significa “não detectado”
