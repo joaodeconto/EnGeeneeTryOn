@@ -141,6 +141,20 @@ body {
   gap: var(--gap);
 }
 
+/* stack label and button vertically */
+.option-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.button-label {
+  color: #fff;
+  font-size: var(--font-size);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
 .option-btn {
   width: var(--btn-size);
   height: var(--btn-size);

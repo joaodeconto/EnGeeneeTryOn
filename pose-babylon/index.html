@@ -61,17 +61,39 @@
     <div id="options-menu" class="options-menu hidden">
         <button id="options-close" class="option-btn close-btn">X</button>
         <div class="option-row">
-            <button id="orientation" class="orientation option-btn"></button>
-            <span id="orientation-label" class="option-label">ON</span>
+            <div class="option-item">
+                <span class="button-label">Orientation</span>
+                <button id="orientation" class="orientation option-btn"></button>
+                <span id="orientation-label" class="option-label">ON</span>
+            </div>
         </div>
         <div class="option-row">
-            <button id="calibrate" class="option-btn">Calibrate</button>
-            <button id="height-minus" class="option-btn small">-</button>
+            <div class="option-item">
+                <span class="button-label">Calibrate</span>
+                <button id="calibrate" class="option-btn">Calibrate</button>
+            </div>
+            <div class="option-item">
+                <span class="button-label">Height -</span>
+                <button id="height-minus" class="option-btn small">-</button>
+            </div>
             <span id="height-label" class="option-label">170 cm</span>
-            <button id="height-plus" class="option-btn small">+</button>
+            <div class="option-item">
+                <span class="button-label">Height +</span>
+                <button id="height-plus" class="option-btn small">+</button>
+            </div>
         </div>
-        <button id="switch-camera" class="option-btn">Switch Camera</button>
-        <button id="export-csv" class="option-btn">Export Smiles</button>
+        <div class="option-row">
+            <div class="option-item">
+                <span class="button-label">Switch Camera</span>
+                <button id="switch-camera" class="option-btn">Switch Camera</button>
+            </div>
+        </div>
+        <div class="option-row">
+            <div class="option-item">
+                <span class="button-label">Export Smiles</span>
+                <button id="export-csv" class="option-btn">Export Smiles</button>
+            </div>
+        </div>
     </div>
 
 
