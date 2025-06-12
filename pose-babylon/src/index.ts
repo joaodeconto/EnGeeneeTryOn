@@ -22,6 +22,11 @@ let rear = urlParams.has("rear");
 let currentStream: MediaStream | null = null;
 let transpose = true;
 let userHeightCm = 170;
+let savedCmPerPx: number | null = (() => {
+  const v = localStorage.getItem("cmPerPx");
+  const num = v ? parseFloat(v) : NaN;
+  return Number.isFinite(num) ? num : null;
+})();
 
 let outfitModel = "polo";
 let hatModel = "dadA";
@@ -165,6 +170,20 @@ function bindCalibrate() {
     }
     const headYnorm = pose.points.nose.pixel[1] - 0.10;
     const ankleYnorm = Math.max(pose.points.ankleL.pixel[1], pose.points.ankleR.pixel[1]);
+    const xVals = [
+      pose.points.shoulderL.pixel[0],
+      pose.points.shoulderR.pixel[0],
+      pose.points.hipL.pixel[0],
+      pose.points.hipR.pixel[0],
+      pose.points.ankleL.pixel[0],
+      pose.points.ankleR.pixel[0]
+    ];
+    const minX = Math.min(...xVals);
+    const maxX = Math.max(...xVals);
+    if (headYnorm < 0 || ankleYnorm > 1 || minX < 0 || maxX > 1) {
+      alert('Certifique-se de que o corpo inteiro esteja visível.');
+      return;
+    }
     const canvasH = ui.video.videoHeight;
     const headYpx = headYnorm * canvasH;
     const ankleYpx = ankleYnorm * canvasH;
@@ -174,6 +193,8 @@ function bindCalibrate() {
       return;
     }
     const cmPerPx = userHeightCm / heightPx;
+    savedCmPerPx = cmPerPx;
+    localStorage.setItem('cmPerPx', cmPerPx.toString());
     const gl = (avatarRenderer as any).gl as WebGLRenderingContext;
     const { texture, size } = pose.maskTex;
     const maskW = size.width, maskH = size.height;
