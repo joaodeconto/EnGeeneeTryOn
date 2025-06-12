@@ -260,13 +260,16 @@ export class MeasurementService {
    * @param pose – SimplePose (landmarks + maskTex obrigatório)
    * @param gl – contexto WebGL para ler a textura
    * @param canvasHeight – altura do canvas visível (pixels)
+   * @param canvasWidth – largura do canvas (pixels)
+   * @param cmPerPx – fator de escala cm/px a ser usado nas medições
    * @returns BodyMeasurements + SizeLabel
    */
   static async measureAndSuggest(
     pose: SimplePose,
     gl: WebGLRenderingContext,
     canvasHeight: number,
-    canvasWidth: number
+    canvasWidth: number,
+    cmPerPx: number
   ): Promise<{ measures: BodyMeasurements; size: SizeLabel }> {
     // 7.1) Verificar se há máscara
     if (!pose.maskTex) {
@@ -294,8 +297,7 @@ export class MeasurementService {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.deleteFramebuffer(framebuffer);
 
-    // 7.3) Calcular cmPerPx (usar ombros)
-    const cmPerPx = this.computeScaleCmPerPx(pose, canvasWidth, canvasHeight);
+    // 7.3) Usar o cmPerPx informado (calibrado ou padrão)
 
     // 7.4) Medir largura de peito e cintura em cm
     const chestCm = this.measureWidthCm(
