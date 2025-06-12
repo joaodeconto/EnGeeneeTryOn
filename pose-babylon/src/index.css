@@ -926,3 +926,24 @@ input.button[type="checkbox"] {
     transform: translate(100%, 100%);
   }
 }
+
+.debug-img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 200px;
+  border: 2px solid red;
+  z-index: 9999;
+}
+
+.debug-log {
+  position: absolute;
+  right: 0;
+  bottom: 210px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #0f0;
+  font-size: 14px;
+  padding: 4px;
+  white-space: pre-line;
+  z-index: 9999;
+}
