@@ -104,7 +104,7 @@ export class MeasurementService {
     maskW: number,
     maskH: number,
     textureY: number
-  ): number {
+  ): { width: number; left: number; right: number } {
     let left = maskW;
     let right = -1;
 
@@ -123,7 +123,8 @@ export class MeasurementService {
       }
     }
 
-    return right >= left ? right - left : 0;
+    const width = right >= left ? right - left : 0;
+    return { width, left, right };
   }
 
   /**
@@ -223,7 +224,7 @@ export class MeasurementService {
     const textureY = this.canvasYToTextureY(yNorm, maskH, canvasHeight);
 
     // 5.3) Medir largura em pixels
-    const widthPx = this.measureSilhouetteWidth(maskPixels, maskW, maskH, textureY);
+    const { width: widthPx } = this.measureSilhouetteWidth(maskPixels, maskW, maskH, textureY);
 
     // 5.4) Converter para centímetros
     return widthPx * cmPerPx;
@@ -260,14 +261,18 @@ export class MeasurementService {
    * @param pose – SimplePose (landmarks + maskTex obrigatório)
    * @param gl – contexto WebGL para ler a textura
    * @param canvasHeight – altura do canvas visível (pixels)
+   * @param canvasWidth – largura do canvas (pixels)
+   * @param cmPerPx – fator de escala cm/px a ser usado nas medições
    * @returns BodyMeasurements + SizeLabel
    */
   static async measureAndSuggest(
     pose: SimplePose,
     gl: WebGLRenderingContext,
     canvasHeight: number,
-    canvasWidth: number
+    canvasWidth: number,
+    cmPerPx: number
   ): Promise<{ measures: BodyMeasurements; size: SizeLabel }> {
+    console.debug('measureAndSuggest', { canvasHeight, canvasWidth, cmPerPx });
     // 7.1) Verificar se há máscara
     if (!pose.maskTex) {
       throw new Error("Mask texture não disponível para medição de silhueta.");
@@ -294,8 +299,7 @@ export class MeasurementService {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.deleteFramebuffer(framebuffer);
 
-    // 7.3) Calcular cmPerPx (usar ombros)
-    const cmPerPx = this.computeScaleCmPerPx(pose, canvasWidth, canvasHeight);
+    // 7.3) Usar o cmPerPx informado (calibrado ou padrão)
 
     // 7.4) Medir largura de peito e cintura em cm
     const chestCm = this.measureWidthCm(
@@ -317,11 +321,17 @@ export class MeasurementService {
       canvasHeight
     );
 
+    console.debug('measurements', { chestCm, waistCm });
+
     // 7.5) Medir altura em cm
     const heightCm = this.measureHeightCm(pose);
 
+    console.debug('heightCm', heightCm);
+
     // 7.6) Sugerir tamanho
     const size = this.suggestSize(heightCm, chestCm, waistCm);
+
+    console.debug('suggested size', size);
 
     return {
       measures: { heightCm, chestCm, waistCm, cmPerPx },

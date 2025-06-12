@@ -22,6 +22,11 @@ let rear = urlParams.has("rear");
 let currentStream: MediaStream | null = null;
 let transpose = true;
 let userHeightCm = 170;
+let savedCmPerPx: number | null = (() => {
+  const v = localStorage.getItem("cmPerPx");
+  const num = v ? parseFloat(v) : NaN;
+  return Number.isFinite(num) ? num : null;
+})();
 
 let outfitModel = "polo";
 let hatModel = "dadA";
@@ -29,6 +34,10 @@ let avatar = outfitMap[outfitModel].avatar;
 let bgUrl = "./UI/BG/Baseball_Background.png";
 
 let lastLandmarks: NormalizedLandmarkList | null = null;
+
+let debugCanvas: HTMLCanvasElement | null = null;
+let debugCtx: CanvasRenderingContext2D | null = null;
+let debugLogEl: HTMLElement | null = null;
 
 const avatarRenderer = new AvatarRenderer(
   ui.container, "crop",
@@ -165,6 +174,20 @@ function bindCalibrate() {
     }
     const headYnorm = pose.points.nose.pixel[1] - 0.10;
     const ankleYnorm = Math.max(pose.points.ankleL.pixel[1], pose.points.ankleR.pixel[1]);
+    const xVals = [
+      pose.points.shoulderL.pixel[0],
+      pose.points.shoulderR.pixel[0],
+      pose.points.hipL.pixel[0],
+      pose.points.hipR.pixel[0],
+      pose.points.ankleL.pixel[0],
+      pose.points.ankleR.pixel[0]
+    ];
+    const minX = Math.min(...xVals);
+    const maxX = Math.max(...xVals);
+    if (headYnorm < 0 || ankleYnorm > 1 || minX < 0 || maxX > 1) {
+      alert('Certifique-se de que o corpo inteiro esteja visível.');
+      return;
+    }
     const canvasH = ui.video.videoHeight;
     const headYpx = headYnorm * canvasH;
     const ankleYpx = ankleYnorm * canvasH;
@@ -174,6 +197,8 @@ function bindCalibrate() {
       return;
     }
     const cmPerPx = userHeightCm / heightPx;
+    savedCmPerPx = cmPerPx;
+    localStorage.setItem('cmPerPx', cmPerPx.toString());
     const gl = (avatarRenderer as any).gl as WebGLRenderingContext;
     const { texture, size } = pose.maskTex;
     const maskW = size.width, maskH = size.height;
@@ -187,13 +212,43 @@ function bindCalibrate() {
     const chestYnorm = (pose.points.shoulderL.pixel[1] + pose.points.shoulderR.pixel[1]) / 2;
     const chestYpx = chestYnorm * maskH;
     const chestYtex = Math.floor(maskH - chestYpx - 1);
-    const chestWidthPx = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, chestYtex);
+    const chestBounds = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, chestYtex);
+    const chestWidthPx = chestBounds.width;
     const chestWidthCm = chestWidthPx * cmPerPx;
     const waistYnorm = (pose.points.hipL.pixel[1] + pose.points.hipR.pixel[1]) / 2;
     const waistYpx = waistYnorm * maskH;
     const waistYtex = Math.floor(maskH - waistYpx - 1);
-    const waistWidthPx = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, waistYtex);
+    const waistBounds = MeasurementService.measureSilhouetteWidth(pixels, maskW, maskH, waistYtex);
+    const waistWidthPx = waistBounds.width;
     const waistWidthCm = waistWidthPx * cmPerPx;
+
+    if (debugCtx && debugCanvas) {
+      debugCanvas.width = maskW;
+      debugCanvas.height = maskH;
+      const imgData = new ImageData(new Uint8ClampedArray(pixels), maskW, maskH);
+      debugCtx.putImageData(imgData, 0, 0);
+      debugCtx.strokeStyle = 'red';
+      debugCtx.beginPath();
+      debugCtx.moveTo(chestBounds.left, chestYtex);
+      debugCtx.lineTo(chestBounds.right, chestYtex);
+      debugCtx.stroke();
+      debugCtx.strokeStyle = 'yellow';
+      debugCtx.beginPath();
+      debugCtx.moveTo(waistBounds.left, waistYtex);
+      debugCtx.lineTo(waistBounds.right, waistYtex);
+      debugCtx.stroke();
+      const headTex = Math.floor(maskH - headYpx - 1);
+      const ankleTex = Math.floor(maskH - ankleYpx - 1);
+      debugCtx.strokeStyle = 'cyan';
+      debugCtx.beginPath();
+      debugCtx.moveTo(maskW / 2, headTex);
+      debugCtx.lineTo(maskW / 2, ankleTex);
+      debugCtx.stroke();
+      debugCanvas.style.display = 'block';
+    }
+    if (debugLogEl) {
+      debugLogEl.textContent = `cmPerPx ${cmPerPx.toFixed(3)}\nheightPx ${heightPx.toFixed(1)}\nchestPx ${chestWidthPx.toFixed(1)}\nwaistPx ${waistWidthPx.toFixed(1)}`;
+    }
     alert(`Calibrated (1px=${cmPerPx.toFixed(3)}cm)\n\nchest: ${chestWidthCm.toFixed(1)} cm\nwaist: ${waistWidthCm.toFixed(1)} cm`);
   };
 }
@@ -201,6 +256,14 @@ async function main() {
 
   if (!ui.container) return;
   await setupCamera();
+
+  debugCanvas = document.getElementById('debug-canvas') as HTMLCanvasElement | null;
+  debugLogEl = document.getElementById('debug-log');
+  if (debugCanvas && ui.video.videoWidth) {
+    debugCanvas.width = ui.video.videoWidth;
+    debugCanvas.height = ui.video.videoHeight;
+    debugCtx = debugCanvas.getContext('2d');
+  }
 
   ui.updateOrientationLabel(transpose);
   ui.updateHeightLabel(userHeightCm);
