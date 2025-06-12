@@ -369,6 +369,7 @@ export class AvatarRenderer extends PoseRenderer {
                 stream.width,
                 cmPerPxCalibrated
             );
+            console.debug('measure result', measures, size);
 
             // 4) Atualizar UI
             const sizeTextEl = document.getElementById("size-text");
