@@ -360,11 +360,14 @@ export class AvatarRenderer extends PoseRenderer {
         };
 
         try {
+            const stored = parseFloat(localStorage.getItem("cmPerPx") || "NaN");
+            const cmPerPxCalibrated = Number.isFinite(stored) ? stored : 1.70;
             const { measures, size } = await MeasurementService.measureAndSuggest(
                 simplePose,
                 this.gl,
                 stream.height,
-                stream.width
+                stream.width,
+                cmPerPxCalibrated
             );
 
             // 4) Atualizar UI
