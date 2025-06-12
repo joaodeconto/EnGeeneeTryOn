@@ -31,7 +31,7 @@ export const outfitMap: {
         file: "./Models/onesie.glb", avatar: false,
         outfit: {
             occluders: [/Head$/, /Body/],
-            hidden: [/Eye/, /Teeth/]
+            hidden: [/Eye/, /Teeth/, /Glasses/]
         }
     },
     jacket: {

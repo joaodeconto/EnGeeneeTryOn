@@ -361,7 +361,7 @@ export class AvatarRenderer extends PoseRenderer {
 
         try {
             const stored = parseFloat(localStorage.getItem("cmPerPx") || "NaN");
-            const cmPerPxCalibrated = Number.isFinite(stored) ? stored : 1.70;
+            const cmPerPxCalibrated = Number.isFinite(stored) ? stored : 0.20;
             const { measures, size } = await MeasurementService.measureAndSuggest(
                 simplePose,
                 this.gl,
