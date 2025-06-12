@@ -265,7 +265,7 @@ export class UIController {
     }
 
     public updateOrientationLabel(transpose: boolean) {
-        this.orientationLabel.textContent = transpose ? 'ON' : 'OFF';
+        this.orientationLabel.textContent = transpose ? 'Vertical' : 'Horizontal';
     }
 
     public updateHeightLabel(height: number) {
