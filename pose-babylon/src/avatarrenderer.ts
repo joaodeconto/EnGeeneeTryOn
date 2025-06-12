@@ -13,7 +13,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { UIController } from "./uiController";
 import { detectArmsUp } from "./poseDetector";
-import { MeasurementService, SimplePose } from "./measurementService";
+import { MeasurementService} from "./measurementService";
 import { outfitMap, hatMap, bgMap } from "./modelMap";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
@@ -346,38 +346,21 @@ export class AvatarRenderer extends PoseRenderer {
         const pose = result.poses[0];
 
 
-        if(this.lastPose){
-
-            const simplePose: SimplePose = {
-            nose: this.lastPose.points.nose,
-            shoulderL: this.lastPose.points.shoulderL,
-            shoulderR: this.lastPose.points.shoulderR,
-            hipL: this.lastPose.points.hipL,
-            hipR: this.lastPose.points.hipR,
-            ankleL: this.lastPose.points.ankleL,      
-            ankleR: this.lastPose.points.ankleR,
-            maskTex: this.lastPose.maskTex            // assume que é { texture, size }
-        };
+        if(this.lastPose?.maskTex){
 
         try {
             const stored = parseFloat(localStorage.getItem("cmPerPx") || "NaN");
             const cmPerPxCalibrated = Number.isFinite(stored) ? stored : 0.20;
             const { measures, size } = await MeasurementService.measureAndSuggest(
-                simplePose,
+                this.lastPose,
                 this.gl,
-                stream.height,
-                stream.width,
-                cmPerPxCalibrated
+                cmPerPxCalibrated         
             );
             console.debug('measure result', measures, size);
 
-            // 4) Atualizar UI
             const sizeTextEl = document.getElementById("size-text");
             if (sizeTextEl) {
-                sizeTextEl.textContent = `Suggested Size: ${size}
-          (Height: ${measures.heightCm.toFixed(1)} cm;
-           Chest: ${measures.chestCm.toFixed(1)} cm;
-           Waist: ${measures.waistCm.toFixed(1)} cm)`;
+                sizeTextEl.textContent = `Suggested Size: ${size}`;
             }
 
             // 5) (Opcional) Desenhar debug overlay

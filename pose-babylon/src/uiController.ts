@@ -15,10 +15,6 @@ export class UIController {
     public optionsToggle: HTMLButtonElement;
     public optionsMenu: HTMLElement;
     public optionsClose: HTMLButtonElement;
-    public calibrateButton: HTMLButtonElement;
-    public heightPlus: HTMLButtonElement;
-    public heightMinus: HTMLButtonElement;
-    public heightLabel: HTMLElement;
     public orientationLabel: HTMLElement;
 
     public switchCameraButton: HTMLButtonElement;
@@ -65,10 +61,6 @@ export class UIController {
         const exportBtn = document.getElementById("export-csv");
         const optionsToggle = document.getElementById("options-toggle");
         const optionsMenu = document.getElementById("options-menu");
-        const calibrateBtn = document.getElementById("calibrate");
-        const heightPlus = document.getElementById("height-plus");
-        const heightMinus = document.getElementById("height-minus");
-        const heightLabel = document.getElementById("height-label");
         const orientationLabel = document.getElementById("orientation-label");
         const optionsClose = document.getElementById("options-close");
 
@@ -80,7 +72,7 @@ export class UIController {
         const scanEl = document.getElementById('scanner-overlay');
         const scanFrameEl = document.getElementById('scanner-frame');
         // Validate mandatory elements
-        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !welcomeEl || !optionsToggle || !optionsMenu || !calibrateBtn || !cameraBtn || !heightPlus || !heightMinus || !heightLabel || !orientationLabel || !optionsClose) {
+        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !welcomeEl || !optionsToggle || !optionsMenu || !orientationLabel || !optionsClose) {
 
             throw new Error("Missing one or more UI elements in DOM");
         }
@@ -91,10 +83,6 @@ export class UIController {
         //if (!(recordBtn instanceof HTMLButtonElement)) throw new Error("#record is not a HTMLButtonElement");
         if (!(exportBtn instanceof HTMLButtonElement)) throw new Error("#export-csv is not a HTMLButtonElement");
         if (!(optionsToggle instanceof HTMLButtonElement)) throw new Error("#options-toggle is not a HTMLButtonElement");
-        if (!(calibrateBtn instanceof HTMLButtonElement)) throw new Error("#calibrate is not a HTMLButtonElement");
-        if (!(cameraBtn instanceof HTMLButtonElement)) throw new Error("#switch-camera is not a HTMLButtonElement");
-        if (!(heightPlus instanceof HTMLButtonElement)) throw new Error("#height-plus is not a HTMLButtonElement");
-        if (!(heightMinus instanceof HTMLButtonElement)) throw new Error("#height-minus is not a HTMLButtonElement");
         if (!(optionsClose instanceof HTMLButtonElement)) throw new Error("#options-close is not a HTMLButtonElement");
 
         // Assign references
@@ -110,10 +98,6 @@ export class UIController {
         this.exportButton = exportBtn as HTMLButtonElement;
         this.optionsToggle = optionsToggle as HTMLButtonElement;
         this.optionsMenu = optionsMenu as HTMLElement;
-        this.calibrateButton = calibrateBtn as HTMLButtonElement;
-        this.heightPlus = heightPlus as HTMLButtonElement;
-        this.heightMinus = heightMinus as HTMLButtonElement;
-        this.heightLabel = heightLabel as HTMLElement;
         this.orientationLabel = orientationLabel as HTMLElement;
         this.optionsClose = optionsClose as HTMLButtonElement;
 
@@ -267,11 +251,7 @@ export class UIController {
     public updateOrientationLabel(transpose: boolean) {
         this.orientationLabel.textContent = transpose ? 'Vertical' : 'Horizontal';
     }
-
-    public updateHeightLabel(height: number) {
-        this.heightLabel.textContent = `${height} cm`;
-    }
-
+    
     public updateCarouselTextures(buttons: NodeListOf<HTMLInputElement>) {
         buttons.forEach(btn => {
           const bg = btn.style.backgroundImage

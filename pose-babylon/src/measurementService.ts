@@ -1,340 +1,172 @@
 // measurementService.ts
 
-import { Scene } from "@babylonjs/core/scene";
-/**
- * Interface mínima para o que esperamos de um landmark vindo do Engeenee.
- * Ajuste conforme a API real que o SDK fornece.
- */
-export interface Landmark {
-  x?: number;           // coordenada X na tela (pixels ou normalizado)
-  y?: number;           // coordenada Y na tela (pixels ou normalizado)
-  metric?: [number, number, number]; // [X, Y, Z] em metros (quando disponível)
-  pixel?: [number, number, number];          // [X, Y] normalizado (0..1) ou em pixels, conforme SDK
-}
+import { Pose } from "@geenee/bodyprocessors";
 
-/**
- * Representa a pose detectada (landmarks) simplificada.
- */
-export interface SimplePose {
-  nose: Landmark;
-  headTop?: Landmark;
-  shoulderL: Landmark;
-  shoulderR: Landmark;
-  hipL: Landmark;
-  hipR: Landmark;
-  ankleL: Landmark;
-  ankleR: Landmark;
-  // … adicione outros pontos se precisar
-  maskTex?: {
-    size: { width: number; height: number };
-    texture: WebGLTexture;
-    };
-}
-
-/**
- * Resultado das medições em centímetros.
- */
 export interface BodyMeasurements {
-  heightCm: number;
-  chestCm: number;
-  waistCm: number;
-  cmPerPx: number;      // fator de escala atual (cm por pixel)
+  heightCm: number;  // altura em centímetros (via cadeia de articulações métricas)
+  waistPx: number;   // largura da cintura em pixels
+  waistCm: number;   // largura da cintura em centímetros
+  cmPerPx: number;   // fator de escala atual (cm por pixel)
 }
 
-/**
- * Labels disponíveis para tamanhos (pode ajustar à sua tabela real).
- */
 export type SizeLabel = "XS" | "S" | "M" | "L" | "XL" | "Fora de faixa";
 
-/**
- * Serviço estático (sem estado) para medição e sugestão de tamanho.
- */
+/** Utility for Euclidean distance */
+function dist3(a: [number, number, number], b: [number, number, number]): number {
+  const dx = a[0] - b[0];
+  const dy = a[1] - b[1];
+  const dz = a[2] - b[2];
+  return Math.sqrt(dx*dx + dy*dy + dz*dz);
+}
+
 export class MeasurementService {
   /**
-   * 1) Calcula o fator de escala (cm por pixel) usando a distância
-   *    3D entre ombro esquerdo e ombro direito (via metric).
-   *
-   * @param pose – conjunto de landmarks da pose
-   * @returns cmPerPx – quantos centímetros equivale a 1 pixel (baseado em ombros)
+   * Scan a single horizontal row of the cropped mask for red > 128.
+   * box: normalized [x,y] top-left and [x2,y2] bottom-right.
    */
-  static computeScaleCmPerPx(pose: SimplePose,
-  canvasWidth: number,
-  canvasHeight: number
-): number {
-    const sL = pose.shoulderL.metric;
-    const sR = pose.shoulderR.metric;
-    if (!sL || !sR) {
-      throw new Error("Não foi possível obter metric de shoulderL ou shoulderR.");
-    }
-
-    // 1. Distância real entre ombros em metros → converter para cm
-    const dx = sL[0] - sR[0];
-    const dy = sL[1] - sR[1];
-    const dz = sL[2] - sR[2];
-    const distShouldersM = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    const distShouldersCm = distShouldersM * 100;
-
-    // 2. Distância em pixels (tarefas de X,Y vindas da pose)
-    //    Supondo que 'x' e 'y' sejam realmente pixels brutos. Se forem normalizados (0..1),
-    //    multiplique por largura/altura da tela antes.
-    const pxL = pose.shoulderL.pixel![0] * canvasWidth;
-    const pyL = pose.shoulderL.pixel![1] * canvasHeight;
-    const pxR = pose.shoulderR.pixel![0] * canvasWidth;
-    const pyR = pose.shoulderR.pixel![1] * canvasHeight;
-    const distShouldersPx = Math.hypot(pxL - pxR, pyL - pyR);
-
-    if (distShouldersPx < 1) {
-      throw new Error("Ombros muito próximos em pixels, possível detecção falha.");
-    }
-
-    return distShouldersCm / distShouldersPx;
-  }
-
-  /**
-   * 2) Mede a largura da silhueta (em pixels) numa determinada linha Y da textura
-   *    de segmentação, varrendo todo o span horizontal e retornando (right–left).
-   *
-   * @param maskPixels – Uint8Array com RGBA de toda a texturamn  
-   * @param maskW, maskH – dimensões da textura
-   * @param textureY – coordenada Y na textura (pixel) onde medir
-   * @returns largura em pixels; 0 significa “não detectado”
-   */
-  static measureSilhouetteWidth(
+  static measureSilhouetteRow(
     maskPixels: Uint8Array,
     maskW: number,
     maskH: number,
-    textureY: number
+    yNorm: number,
+    box: [number, number][]
   ): { width: number; left: number; right: number } {
-    let left = maskW;
-    let right = -1;
+    const [[x0, y0], [x1, y1]] = box;
+    const boxH = y1 - y0;
+    const innerY = (yNorm - y0) / boxH;
+    const clamped = Math.max(0, Math.min(1, innerY));
+    const textureRow = Math.floor((1 - clamped) * maskH);
 
+    let left = maskW, right = -1;
     for (let x = 0; x < maskW; x++) {
-      const idx = (textureY * maskW + x) * 4;
-      const r = maskPixels[idx];
-      const g = maskPixels[idx + 1];
-      const b = maskPixels[idx + 2];
-      const a = maskPixels[idx + 3];
-
-      // Threshold: considere “parte do corpo” se alpha alto ou luma alta
-      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
-      if (a > 128 || luma > 128) {
-        if (x < left) left = x;
-        if (x > right) right = x;
+      const idx = (textureRow * maskW + x) * 4;
+      if (maskPixels[idx] > 128) { // red > threshold
+        left = Math.min(left, x);
+        right = Math.max(right, x);
       }
     }
-
     const width = right >= left ? right - left : 0;
     return { width, left, right };
   }
 
   /**
-   * 3) Converte coordenada Y em “pixel de tela” (por ex. normalizada 0..1) para
-   *    coordenada Y da textura WebGL (origem no canto inferior).
-   *
-   * @param normalizedY – valor Y do landmark em [0..1], ou pixel / canvasHeight
-   * @param maskH – altura da textura
-   * @param canvasH – altura do elemento canvas visível
-   * @returns Y em pixel na textura (invertida)
+   * Measure waist width in pixels.
    */
-  static canvasYToTextureY(
-    normalizedY: number,
-    maskH: number,
-    canvasH: number
-  ): number {
-    // Se normalizedY for already em pixels (0..canvasH), então /canvasH retorna 0..1
-    const yNorm = normalizedY; // assumindo 0..1
-    const scaledY = yNorm * maskH;
-    return Math.floor(maskH - scaledY - 1);
-  }
-
-  /**
-   * 4) Mede a altura real do usuário em centímetros, usando headTop ↔ heel.
-   *
-   * @param pose – landmarks da pose (com metric)
-   * @returns altura aproximada em cm
-   */
-  static measureHeightCm(pose: SimplePose, cmPerPx?: number): number {
-    // 4.1) Determinar top of head
-    let headY: number;
-    if (pose.headTop && pose.headTop.metric) {
-      headY = pose.headTop.metric[1];
-    } else if (pose.nose && pose.nose.metric) {
-      // Se não houver headTop, compense +15 cm acima do nariz
-      headY = pose.nose.metric[1] + 0.15;
-    } else {
-      throw new Error("Não foi possível determinar headTop ou nose.metric.");
-    }
-
-    // 4.2) Determinar Y do calcanhar
-    let heelY: number;
-    const aL = pose.ankleL.metric;
-    const aR = pose.ankleR.metric;
-    if (aL && aR) {
-      const ankleMinY = Math.min(aL[1], aR[1]);
-      heelY = ankleMinY - 0.04; // aproximar +4 cm de compensação para o calcanhar
-    } else {
-      throw new Error("Não foi possível obter ankle.metric para cálculo de pé.");
-    }
-
-    const heightM = Math.max(0, headY - heelY);
-    return heightM * 100; // converter para cm
-  }
-
-  /**
-   * 5) Mede largura de peito ou cintura em centímetros:
-   *    - Pede a largura em pixels da silhueta (no nível do landmark)
-   *    - Converte para cm usando cmPerPx
-   *
-   * @param pose – landmarks (para obter pixel Y normalizado)
-   * @param maskPixels – RGBA da textura
-   * @param maskW, maskH – dimensões da textura
-   * @param cmPerPx – fator de escala cm/px
-   * @param level – "chest" ou "waist": define qual linha medir
-   */
-  static measureWidthCm(
-    pose: SimplePose,
+  static measureWaistPx(
+    pose: Pose,
     maskPixels: Uint8Array,
     maskW: number,
-    maskH: number,
-    cmPerPx: number,
-    level: "chest" | "waist",
-    canvasHeight: number
+    maskH: number
   ): number {
-    // 5.1) Escolher Y normalizado conforme nível
-    let yNorm: number;
-    if (level === "chest") {
-      // use o ponto médio entre os ombros (normalizado 0..1)
-      const yL = pose.shoulderL.pixel ? pose.shoulderL.pixel[1] : undefined;
-      const yR = pose.shoulderR.pixel ? pose.shoulderR.pixel[1] : undefined;
-      if (yL == null || yR == null) {
-        throw new Error("pixel de shoulderL ou shoulderR não disponível.");
-      }
-      yNorm = (yL + yR) / 2;
-    } else {
-      // waist: ponto médio entre os quadris (normalizado)
-      const yL = pose.hipL.pixel ? pose.hipL.pixel[1] : undefined;
-      const yR = pose.hipR.pixel ? pose.hipR.pixel[1] : undefined;
-      if (yL == null || yR == null) {
-        throw new Error("pixel de hipL ou hipR não disponível.");
-      }
-      yNorm = (yL + yR) / 2;
-    }
-
-    // 5.2) Converter Y normalizado → pixel da textura
-    const textureY = this.canvasYToTextureY(yNorm, maskH, canvasHeight);
-
-    // 5.3) Medir largura em pixels
-    const { width: widthPx } = this.measureSilhouetteWidth(maskPixels, maskW, maskH, textureY);
-
-    // 5.4) Converter para centímetros
-    return widthPx * cmPerPx;
+    const yL = pose.points.hipL.pixel?.[1];
+    const yR = pose.points.hipR.pixel?.[1];
+    if (yL == null || yR == null) throw new Error("hip pixel missing");
+    const yNorm = (yL + yR) / 2;
+    const box = pose.maskTex!.box;
+    const { width } = this.measureSilhouetteRow(
+      maskPixels, maskW, maskH, yNorm, box
+    );
+    return width;
   }
 
   /**
-   * 6) Função que recebe as medições em cm e mapeia para um label de tamanho.
-   *
-   * Pode usar somente chestCm + heightCm, ou waistCm. Ajuste thresholds conforme tabela real.
+   * Measure height in cm by summing metric distances along skeleton chain:
+   * headTop -> shoulderMid -> hipMid -> ankleMid -> foot offset.
+   */
+  static measureHeightCm(pose: Pose): number {
+    // headTop or approximate above nose
+    const noseM = pose.points.nose.metric;
+    if (!noseM) throw new Error("nose.metric missing");
+    const headTop: [number, number, number] =  [noseM[0], noseM[1] + 0.12, noseM[2]];
+
+    // shoulder midpoint
+    const sL = pose.points.shoulderL.metric;
+    const sR = pose.points.shoulderR.metric;
+    if (!sL || !sR) throw new Error("shoulder.metric missing");
+    const shoulderMid: [number, number, number] = [
+      (sL[0] + sR[0]) / 2,
+      (sL[1] + sR[1]) / 2,
+      (sL[2] + sR[2]) / 2
+    ];
+
+    // hip midpoint
+    const hL = pose.points.hipL.metric;
+    const hR = pose.points.hipR.metric;
+    if (!hL || !hR) throw new Error("hip.metric missing");
+    const hipMid: [number, number, number] = [
+      (hL[0] + hR[0]) / 2,
+      (hL[1] + hR[1]) / 2,
+      (hL[2] + hR[2]) / 2
+    ];
+
+    // ankle midpoint
+    const aL = pose.points.ankleL.metric;
+    const aR = pose.points.ankleR.metric;
+    if (!aL || !aR) throw new Error("ankle.metric missing");
+    const ankleMid: [number, number, number] = [
+      (aL[0] + aR[0]) / 2,
+      (aL[1] + aR[1]) / 2,
+      (aL[2] + aR[2]) / 2
+    ];
+
+    // sum distances along chain
+    let heightM = 0;
+    heightM += dist3(headTop, shoulderMid);
+    heightM += dist3(shoulderMid, hipMid);
+    heightM += dist3(hipMid, ankleMid);
+    // foot offset ~ 0.04m
+    heightM += 0.04;
+
+    return heightM * 100;
+  }
+
+  /**
+   * Suggest a size label using only waistCm and heightCm.
    */
   static suggestSize(
     heightCm: number,
-    chestCm: number,
-    waistCm?: number
+    waistCm: number
   ): SizeLabel {
-    // Exemplo simplificado (você pode refinar usando a cintura ou tabela completa):
-    if (heightCm < 150) {
-      return chestCm < 80 ? "XS" : "S";
-    } else if (heightCm < 170) {
-      if (chestCm < 90) return "S";
-      if (chestCm < 100) return "M";
-      return "L";
-    } else {
-      if (chestCm < 100) return "M";
-      if (chestCm < 110) return "L";
-      return "XL";
-    }
+    if (waistCm < 20) return "XS";
+    if (waistCm < 30) return "S";
+    if (waistCm < 40) return "M";
+    if (waistCm < 50) return "L";
+    return "XL";
   }
 
   /**
-   * 7) Combina tudo: recebe a pose, a máscara (via WebGL), o canvas de visualização
-   *    e retorna um objeto com medidas em cm e label sugerido.
-   *
-   * @param pose – SimplePose (landmarks + maskTex obrigatório)
-   * @param gl – contexto WebGL para ler a textura
-   * @param canvasHeight – altura do canvas visível (pixels)
-   * @param canvasWidth – largura do canvas (pixels)
-   * @param cmPerPx – fator de escala cm/px a ser usado nas medições
-   * @returns BodyMeasurements + SizeLabel
+   * Master method: reads mask, measures waistPx & waistCm, heightCm, then suggests size.
    */
   static async measureAndSuggest(
-    pose: SimplePose,
+    pose: Pose,
     gl: WebGLRenderingContext,
-    canvasHeight: number,
-    canvasWidth: number,
     cmPerPx: number
   ): Promise<{ measures: BodyMeasurements; size: SizeLabel }> {
-    console.debug('measureAndSuggest', { canvasHeight, canvasWidth, cmPerPx });
-    // 7.1) Verificar se há máscara
-    if (!pose.maskTex) {
-      throw new Error("Mask texture não disponível para medição de silhueta.");
-    }
+    if (!pose.maskTex) throw new Error("maskTex missing");
+    const { size: boxSize, texture, box } = pose.maskTex;
+    const maskW = boxSize.width, maskH = boxSize.height;
 
-    // 7.2) Ler pixels da máscara via WebGL
-    
-    const maskW = pose.maskTex.size.width;
-    const maskH = pose.maskTex.size.height;
-
-    const framebuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    const fb = gl.createFramebuffer()!;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
     gl.framebufferTexture2D(
       gl.FRAMEBUFFER,
       gl.COLOR_ATTACHMENT0,
       gl.TEXTURE_2D,
-      pose.maskTex.texture,
+      texture,
       0
     );
-
     const pixels = new Uint8Array(maskW * maskH * 4);
     gl.readPixels(0, 0, maskW, maskH, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.deleteFramebuffer(framebuffer);
+    gl.deleteFramebuffer(fb);
 
-    // 7.3) Usar o cmPerPx informado (calibrado ou padrão)
-
-    // 7.4) Medir largura de peito e cintura em cm
-    const chestCm = this.measureWidthCm(
-      pose,
-      pixels,
-      maskW,
-      maskH,
-      cmPerPx,
-      "chest",
-      canvasHeight
-    );
-    const waistCm = this.measureWidthCm(
-      pose,
-      pixels,
-      maskW,
-      maskH,
-      cmPerPx,
-      "waist",
-      canvasHeight
-    );
-
-    console.debug('measurements', { chestCm, waistCm });
-
-    // 7.5) Medir altura em cm
+    const waistPx = this.measureWaistPx(pose, pixels, maskW, maskH);
+    const waistCm = waistPx;
     const heightCm = this.measureHeightCm(pose);
-
-    console.debug('heightCm', heightCm);
-
-    // 7.6) Sugerir tamanho
-    const size = this.suggestSize(heightCm, chestCm, waistCm);
-
-    console.debug('suggested size', size);
+    const size = this.suggestSize(heightCm, waistCm);
 
     return {
-      measures: { heightCm, chestCm, waistCm, cmPerPx },
+      measures: { heightCm, waistPx, waistCm, cmPerPx },
       size
     };
   }
