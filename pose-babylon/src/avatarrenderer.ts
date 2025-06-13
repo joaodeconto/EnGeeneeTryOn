@@ -12,9 +12,10 @@ import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator"
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { UIController } from "./uiController";
-import { detectArmsUp } from "./poseDetector";
-import { MeasurementService} from "./measurementService";
+import { detectArmsUp, detectTPose } from "./poseDetector";
+import { MeasurementService } from "./measurementService";
 import { outfitMap, hatMap, bgMap } from "./modelMap";
+import { SparkBurst } from "./sparkBurst";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 import "@babylonjs/loaders/glTF/2.0";
@@ -56,6 +57,11 @@ export class AvatarRenderer extends PoseRenderer {
 
     private hasScanned = false;
     private handsUp = false;
+    private tPose = false;
+
+    private spark?: SparkBurst;
+    private prevHandsUp = false;
+    private prevTpose = false;
 
     // Constructor
     constructor(
@@ -85,7 +91,6 @@ export class AvatarRenderer extends PoseRenderer {
         this.addPlugin(this.morphPlugin);
         this.addPlugin(this.patchPlugin);
         this.addPlugin(this.bgReplace);
-
     }
 
     async toggleBgMode(enable: boolean) {
@@ -135,7 +140,7 @@ export class AvatarRenderer extends PoseRenderer {
 
         // Text model
         const gltf = await SceneLoader.
-            LoadAssetContainerAsync("./", "text.glb", scene);
+            LoadAssetContainerAsync("./Models/", "FoundryText.glb", scene);
         const textMesh = gltf.meshes.find((m) => m.id === "Text");
         if (textMesh) {
             textMesh.scaling.setAll(0.075);
@@ -155,6 +160,8 @@ export class AvatarRenderer extends PoseRenderer {
         } else {
             console.warn("Background URL is undefined.");
         }
+
+        this.spark = new SparkBurst(scene);
     }
 
     // Set model to render
@@ -350,34 +357,31 @@ export class AvatarRenderer extends PoseRenderer {
     async update(result: PoseResult, stream: HTMLCanvasElement): Promise<void> {
         const pose = result.poses[0];
 
+        if (this.lastPose?.maskTex) {
 
-        if(this.lastPose?.maskTex){
+            try {
+                const stored = parseFloat(localStorage.getItem("cmPerPx") || "NaN");
+                const cmPerPxCalibrated = Number.isFinite(stored) ? stored : 0.20;
+                const { measures, size } = await MeasurementService.measureAndSuggest(
+                    this.lastPose,
+                    this.gl,
+                    cmPerPxCalibrated
+                );
+                console.debug('measure result', measures, size);
 
-        try {
-            const stored = parseFloat(localStorage.getItem("cmPerPx") || "NaN");
-            const cmPerPxCalibrated = Number.isFinite(stored) ? stored : 0.20;
-            const { measures, size } = await MeasurementService.measureAndSuggest(
-                this.lastPose,
-                this.gl,
-                cmPerPxCalibrated         
-            );
-            console.debug('measure result', measures, size);
+                const sizeTextEl = document.getElementById("size-text");
+                if (sizeTextEl) {
+                    sizeTextEl.textContent = `Suggested Size: ${size}`;
+                }
 
-            const sizeTextEl = document.getElementById("size-text");
-            if (sizeTextEl) {
-                sizeTextEl.textContent = `Suggested Size: ${size}`;
+            } catch (err) {
+                console.warn("Não foi possível medir/sugerir tamanho:", err);
             }
-
-            // 5) (Opcional) Desenhar debug overlay
-            //this.drawDebugOverlay(simplePose, measures, size, stream);
-
-        } catch (err) {
-            console.warn("Não foi possível medir/sugerir tamanho:", err);
-        }
         }
 
         if (!pose) {
             this.handsUp = false;
+            this.tPose = false;
             if (!this.isBlur)
                 this.ui.backgroundImg.style.zIndex = "1";
             this.hasScanned = false; // ← reset scan flag
@@ -392,11 +396,27 @@ export class AvatarRenderer extends PoseRenderer {
             return super.update(result, stream);
         }
 
-        //console.log(pose.points.hipL.visibility);
         this.noPoseStart = null;
 
         // Position text model
         this.handsUp = detectArmsUp(pose);
+
+        this.tPose = detectTPose(pose);
+        if (this.tPose && !this.prevTpose) {
+            const wristL = new Vector3(...pose.points.wristL.metric);
+            const wristR = new Vector3(...pose.points.wristR.metric);
+            this.spark?.burst(wristL, wristR, /* optional count override */);
+        }
+        this.prevTpose = this.tPose;
+
+        if (this.handsUp && !this.prevHandsUp) {
+            const wristL = new Vector3(...pose.points.wristL.metric);
+            const wristR = new Vector3(...pose.points.wristR.metric);
+            this.spark?.burst(wristL, wristR, /* optional count override */);
+        }
+
+        this.prevHandsUp = this.handsUp;
+
         const { textModel } = this;
         if (textModel) {
             const wristL = new Vector3(...pose.points.wristL.metric);
@@ -417,10 +437,10 @@ export class AvatarRenderer extends PoseRenderer {
             this.updatePatchParts(true);
         }
 
-        this.ui.backgroundImg.style.zIndex = "-30";     
+        this.ui.backgroundImg.style.zIndex = "-30";
 
         await super.update(result, stream);
-    }   
+    }
 }
 
-    
+

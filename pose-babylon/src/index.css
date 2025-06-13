@@ -248,7 +248,7 @@ body {
 /* bigger “×” in corner of panel */
 .close-btn {
   position: absolute;
-  top: 0rem;
+  top: -3rem;
   right: 1rem;
   width: clamp(40px, 5vw, 60px);
   height: clamp(40px, 5vw, 60px);
@@ -657,9 +657,6 @@ input.button[type="checkbox"] {
   width: 10rem;
   margin: auto 4px;
   overflow: hidden;
-  border: double 4px #008080;
-  border-radius: calc(0.5rem - 2px);
-  border-color: hsl(240 10% 3.9% / 0.4);
   background-position: center;
   background-size: contain;
   background-color: hsl(240 5.9% 10% / 0.4);
