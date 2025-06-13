@@ -61,29 +61,30 @@
     <div id="options-menu" class="options-menu hidden">
         <button id="options-close" class="option-btn close-btn">X</button>
         <div class="option-row">
-            <div class="option-item">
-                <span class="button-label">Orientation</span>
-                <button id="orientation" class="orientation option-btn"></button>
+            <span class="option-label">Orientation</span>
+            <div class="option-control">
+                <input id="orientation" type="checkbox" class="toggle-switch" />
                 <span id="orientation-label" class="option-label">Vertical</span>
             </div>
         </div>
         
         <div class="option-row">
-            <div class="option-item">
-                <span class="button-label">Export Smiles</span>
+            <span class="option-label">Export Smiles</span>
+            <div class="option-control">
                 <button id="export-csv" class="option-btn">Export Smiles</button>
             </div>
         </div>
         <div class="option-row">
-            <div class="option-item">
-                <span class="button-label">Music</span>
-                <button id="music-toggle" class="option-btn">Toggle Music</button>
+            <span class="option-label">Music</span>
+            <div class="option-control">
+                <input id="music-toggle" type="checkbox" class="toggle-switch" />
             </div>
         </div>
         <div class="option-row">
-            <div class="option-item">
-                <span class="button-label">No Pose Delay (s)</span>
-                <input id="no-pose-delay" class="option-input" type="number" min="1" value="5" />
+            <span class="option-label">No Pose Delay</span>
+            <div class="option-control">
+                <input id="no-pose-delay" class="option-input" type="range" min="1" max="10" value="5" />
+                <span id="no-pose-delay-value" class="option-label">5</span>
             </div>
         </div>
     </div>

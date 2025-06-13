@@ -7,13 +7,14 @@ export class UIController {
     public faceCanvas: HTMLCanvasElement;
     public faceCtx: CanvasRenderingContext2D;
     public container: HTMLElement;
-    public transposeButton: HTMLButtonElement;
+    public transposeButton: HTMLInputElement;
     public scanner: HTMLElement;
     public scannerFrame: HTMLElement;
     //public recordButton: HTMLButtonElement;
     public exportButton: HTMLButtonElement;
-    public musicToggle: HTMLButtonElement;
+    public musicToggle: HTMLInputElement;
     public noPoseDelayInput: HTMLInputElement;
+    public noPoseDelayValue: HTMLElement;
     public optionsToggle: HTMLButtonElement;
     public optionsMenu: HTMLElement;
     public optionsClose: HTMLButtonElement;
@@ -63,6 +64,7 @@ export class UIController {
         const exportBtn = document.getElementById("export-csv");
         const musicToggle = document.getElementById("music-toggle");
         const noPoseDelayInput = document.getElementById("no-pose-delay");
+        const noPoseDelayValue = document.getElementById("no-pose-delay-value");
         const optionsToggle = document.getElementById("options-toggle");
         const optionsMenu = document.getElementById("options-menu");
         const orientationLabel = document.getElementById("orientation-label");
@@ -76,19 +78,19 @@ export class UIController {
         const scanEl = document.getElementById('scanner-overlay');
         const scanFrameEl = document.getElementById('scanner-frame');
         // Validate mandatory elements
-        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !musicToggle || !noPoseDelayInput || !welcomeEl || !optionsToggle || !optionsMenu || !orientationLabel || !optionsClose) {
+        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !musicToggle || !noPoseDelayInput || !noPoseDelayValue || !welcomeEl || !optionsToggle || !optionsMenu || !orientationLabel || !optionsClose) {
 
             throw new Error("Missing one or more UI elements in DOM");
         }
         // Type checks
         if (!(videoEl instanceof HTMLVideoElement)) throw new Error("#video is not a HTMLVideoElement");
         if (!(faceCanvasEl instanceof HTMLCanvasElement)) throw new Error("#faceCanvas is not a HTMLCanvasElement");
-        if (!(transposeBtn instanceof HTMLButtonElement)) throw new Error("#orientation is not a HTMLButtonElement");
+        if (!(transposeBtn instanceof HTMLInputElement)) throw new Error("#orientation is not an HTMLInputElement");
         //if (!(recordBtn instanceof HTMLButtonElement)) throw new Error("#record is not a HTMLButtonElement");
         if (!(exportBtn instanceof HTMLButtonElement)) throw new Error("#export-csv is not a HTMLButtonElement");
         if (!(optionsToggle instanceof HTMLButtonElement)) throw new Error("#options-toggle is not a HTMLButtonElement");
         if (!(optionsClose instanceof HTMLButtonElement)) throw new Error("#options-close is not a HTMLButtonElement");
-        if (!(musicToggle instanceof HTMLButtonElement)) throw new Error("#music-toggle is not a HTMLButtonElement");
+        if (!(musicToggle instanceof HTMLInputElement)) throw new Error("#music-toggle is not an HTMLInputElement");
         if (!(noPoseDelayInput instanceof HTMLInputElement)) throw new Error("#no-pose-delay is not an HTMLInputElement");
 
         // Assign references
@@ -99,11 +101,12 @@ export class UIController {
         this.faceCanvas = faceCanvasEl;
         this.faceCtx = faceCanvasEl.getContext("2d")!;
         this.container = containerEl;
-        this.transposeButton = transposeBtn as HTMLButtonElement;
+        this.transposeButton = transposeBtn as HTMLInputElement;
         //this.recordButton        = recordBtn as HTMLButtonElement;
         this.exportButton = exportBtn as HTMLButtonElement;
-        this.musicToggle = musicToggle as HTMLButtonElement;
+        this.musicToggle = musicToggle as HTMLInputElement;
         this.noPoseDelayInput = noPoseDelayInput as HTMLInputElement;
+        this.noPoseDelayValue = noPoseDelayValue as HTMLElement;
         this.optionsToggle = optionsToggle as HTMLButtonElement;
         this.optionsMenu = optionsMenu as HTMLElement;
         this.orientationLabel = orientationLabel as HTMLElement;
@@ -258,6 +261,7 @@ export class UIController {
 
     public updateOrientationLabel(transpose: boolean) {
         this.orientationLabel.textContent = transpose ? 'Vertical' : 'Horizontal';
+        this.transposeButton.checked = transpose;
     }
     
     public updateCarouselTextures(buttons: NodeListOf<HTMLInputElement>) {

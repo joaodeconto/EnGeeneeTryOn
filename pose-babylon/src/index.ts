@@ -96,7 +96,7 @@ function bindStartButton() {
 }
 
 function bindTransposeButton() {
-  (ui.transposeButton as HTMLButtonElement).onclick = async () => {
+  (ui.transposeButton as HTMLInputElement).onclick = async () => {
     transpose = !transpose;
     audioManager.playClickSfx();
     avatarRenderer.setMirror(!transpose);
@@ -151,10 +151,12 @@ function bindNoPoseDelay() {
     const sec = parseFloat(ui.noPoseDelayInput.value);
     if (!isNaN(sec) && sec > 0) {
       avatarRenderer.noPoseDelay = sec * 1000;
+      ui.noPoseDelayValue.textContent = String(sec);
     }
   };
   // set initial value from renderer
   ui.noPoseDelayInput.value = String(avatarRenderer.noPoseDelay / 1000);
+  ui.noPoseDelayValue.textContent = ui.noPoseDelayInput.value;
 }
 
 
