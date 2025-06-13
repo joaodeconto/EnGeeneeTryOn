@@ -61,7 +61,7 @@ Key components:
 * **Calibration Module**: button to input user height for pixel‑to‑cm conversion.
 * **Carousel Selectors**: choose among multiple outfits, hats, and backgrounds.
 
-* **Options Menu**: toggle actions like calibration, camera switching and smile export.
+* **Options Menu**: toggle actions like calibration, camera switching and smile export. Also adjust the delay before the holding screen reappears when no pose is detected.
 
 * **Size Estimation Display**: shows calculated clothing size in real time.
 

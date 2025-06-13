@@ -81,6 +81,21 @@ body {
   z-index: 200001; /* above all other elements */
 }
 
+.loading-text::after {
+  content: '...';
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  width: 0;
+  animation: dots 1s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  to {
+    width: 1.5em;
+  }
+}
+
 .top-icon {
   position: fixed;      /* fix to viewport */
   top: 13rem;            /* distance from top of screen */
@@ -177,6 +192,16 @@ body {
   font-size: var(--font-size);
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
   white-space: nowrap;
+}
+
+.option-input {
+  width: 4rem;
+  padding: 0.25rem;
+  font-size: var(--font-size);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
 }
 
 /* bigger “×” in corner of panel */

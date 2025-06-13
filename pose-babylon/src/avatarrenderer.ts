@@ -51,8 +51,8 @@ export class AvatarRenderer extends PoseRenderer {
     protected hasPatchedHat = false;
 
     protected gl: WebGLRenderingContext;
-    protected noPoseCounter = 0;
-    protected noPoseDelay = 1000; // Number of frames to wait before showing holding screen
+    protected noPoseStart: number | null = null;
+    public noPoseDelay = 5000; // Milliseconds to wait before showing holding screen
 
     private hasScanned = false;
     private handsUp = false;
@@ -291,10 +291,15 @@ export class AvatarRenderer extends PoseRenderer {
             );
         });
 
-        // 5. swap roles: move the new image to layer1, reset layer2
+        // 5. swap roles without triggering another fade
+        layer1.style.transition = "none";
+        layer2.style.transition = "none";
         layer1.style.backgroundImage = `url(${file})`;
         layer1.style.opacity = "1";
         layer2.style.opacity = "0";
+        void layer1.offsetWidth; // force reflow to apply instantly
+        layer1.style.transition = "";
+        layer2.style.transition = "";
     }
 
     async setHat(url: string) {
@@ -376,21 +381,19 @@ export class AvatarRenderer extends PoseRenderer {
             if (!this.isBlur)
                 this.ui.backgroundImg.style.zIndex = "1";
             this.hasScanned = false; // ← reset scan flag
-            // Start a counter to track frames without a pose
-            if (!this.noPoseCounter) this.noPoseCounter = 0;
-            if (!this.ui.isHoldingScreen)
-                this.noPoseCounter++;
 
-            // If the counter reaches a threshold, activate holding-screen
-            if (this.noPoseCounter > this.noPoseDelay) { // Adjust threshold as needed
+            if (this.noPoseStart === null) this.noPoseStart = performance.now();
+
+            if (!this.ui.isHoldingScreen && this.noPoseStart !== null &&
+                performance.now() - this.noPoseStart > this.noPoseDelay) {
                 this.ui.showHoldingScreen();
-                this.noPoseCounter = 0;
+                this.noPoseStart = null;
             }
             return super.update(result, stream);
         }
 
         //console.log(pose.points.hipL.visibility);
-        this.noPoseCounter = 0;
+        this.noPoseStart = null;
 
         // Position text model
         this.handsUp = detectArmsUp(pose);

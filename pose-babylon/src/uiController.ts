@@ -12,6 +12,8 @@ export class UIController {
     public scannerFrame: HTMLElement;
     //public recordButton: HTMLButtonElement;
     public exportButton: HTMLButtonElement;
+    public musicToggle: HTMLButtonElement;
+    public noPoseDelayInput: HTMLInputElement;
     public optionsToggle: HTMLButtonElement;
     public optionsMenu: HTMLElement;
     public optionsClose: HTMLButtonElement;
@@ -59,6 +61,8 @@ export class UIController {
         const transposeBtn = document.getElementById("orientation");
         //const recordBtn = document.getElementById("record");
         const exportBtn = document.getElementById("export-csv");
+        const musicToggle = document.getElementById("music-toggle");
+        const noPoseDelayInput = document.getElementById("no-pose-delay");
         const optionsToggle = document.getElementById("options-toggle");
         const optionsMenu = document.getElementById("options-menu");
         const orientationLabel = document.getElementById("orientation-label");
@@ -72,7 +76,7 @@ export class UIController {
         const scanEl = document.getElementById('scanner-overlay');
         const scanFrameEl = document.getElementById('scanner-frame');
         // Validate mandatory elements
-        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !welcomeEl || !optionsToggle || !optionsMenu || !orientationLabel || !optionsClose) {
+        if (!scanFrameEl || !scanEl || !bgi || !hs || !sb || !videoEl || !faceCanvasEl || !containerEl || !transposeBtn || !exportBtn || !musicToggle || !noPoseDelayInput || !welcomeEl || !optionsToggle || !optionsMenu || !orientationLabel || !optionsClose) {
 
             throw new Error("Missing one or more UI elements in DOM");
         }
@@ -84,6 +88,8 @@ export class UIController {
         if (!(exportBtn instanceof HTMLButtonElement)) throw new Error("#export-csv is not a HTMLButtonElement");
         if (!(optionsToggle instanceof HTMLButtonElement)) throw new Error("#options-toggle is not a HTMLButtonElement");
         if (!(optionsClose instanceof HTMLButtonElement)) throw new Error("#options-close is not a HTMLButtonElement");
+        if (!(musicToggle instanceof HTMLButtonElement)) throw new Error("#music-toggle is not a HTMLButtonElement");
+        if (!(noPoseDelayInput instanceof HTMLInputElement)) throw new Error("#no-pose-delay is not an HTMLInputElement");
 
         // Assign references
         this.backgroundImg = bgi;
@@ -96,6 +102,8 @@ export class UIController {
         this.transposeButton = transposeBtn as HTMLButtonElement;
         //this.recordButton        = recordBtn as HTMLButtonElement;
         this.exportButton = exportBtn as HTMLButtonElement;
+        this.musicToggle = musicToggle as HTMLButtonElement;
+        this.noPoseDelayInput = noPoseDelayInput as HTMLInputElement;
         this.optionsToggle = optionsToggle as HTMLButtonElement;
         this.optionsMenu = optionsMenu as HTMLElement;
         this.orientationLabel = orientationLabel as HTMLElement;
