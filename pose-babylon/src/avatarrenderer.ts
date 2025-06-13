@@ -52,7 +52,7 @@ export class AvatarRenderer extends PoseRenderer {
 
     protected gl: WebGLRenderingContext;
     protected noPoseStart: number | null = null;
-    public noPoseDelay = 5000; // Milliseconds to wait before showing holding screen
+    public noPoseDelay = 20000; // Milliseconds to wait before showing holding screen
 
     private hasScanned = false;
     private handsUp = false;

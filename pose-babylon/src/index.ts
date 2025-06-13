@@ -1,4 +1,4 @@
-import { PoseEngine} from "@geenee/bodyprocessors";
+import { PoseEngine } from "@geenee/bodyprocessors";
 import { AvatarRenderer } from "./avatarrenderer";
 import { outfitMap, hatMap, bgMap } from "./modelMap";
 import { SmileDetector } from "./smiledetection";
@@ -150,7 +150,7 @@ function bindNoPoseDelay() {
   ui.noPoseDelayInput.onchange = () => {
     const sec = parseFloat(ui.noPoseDelayInput.value);
     if (!isNaN(sec) && sec > 0) {
-      avatarRenderer.noPoseDelay = sec * 1000;
+      avatarRenderer.noPoseDelay = sec * 2000;
       ui.noPoseDelayValue.textContent = String(sec);
     }
   };
@@ -187,7 +187,7 @@ async function main() {
     ui.hatButtons,
     hatMap,
     async value => {
-      hatModel = value; 
+      hatModel = value;
       await avatarRenderer.setHat(value);
     });
   bindCarousel(
@@ -208,8 +208,7 @@ async function main() {
     enginePose.addRenderer(avatarRenderer)
   ]);
 
-  await enginePose.start();  
-  audioManager.playBgMusic();
+  await enginePose.start();
 
   // 1) One FaceMesh instance
   const faceMesh = new FaceMesh({
@@ -305,6 +304,7 @@ async function main() {
   if (!loader) return;
   loader.classList.add('fade-out');
   loader.addEventListener('animationend', () => {
+    audioManager.playBgMusic();
     loader.remove();
   });
 }

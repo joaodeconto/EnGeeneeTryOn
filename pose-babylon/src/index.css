@@ -10,8 +10,8 @@ body {
   /* scale values up for high-res displays */
   --menu-width: clamp(400px, 30vw, 600px);
   --btn-size: clamp(80px, 10vw, 120px);
-  --font-size: clamp(18px, 2vw, 28px);
-  --gap: clamp(1rem, 2vw, 2rem);
+  --font-size: clamp(18px, 2vw, 36px);
+  --gap: clamp(1rem, 2vw, 6rem);
 
   --bg: rgba(0 0 0 / 0.5);
   --btn-bg: rgba(255 255 255 / 0.2);
@@ -74,6 +74,7 @@ body {
   font-family: 'MarkForMCNrw', sans-serif;
   font-size: 3rem;
   color: hsl(240, 10%, 4%);
+  position: relative;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -82,12 +83,14 @@ body {
 }
 
 .loading-text::after {
-  content: '...';
-  overflow: hidden;
-  display: inline-block;
-  vertical-align: bottom;
-  width: 0;
-  animation: dots 1s steps(4, end) infinite;
+  content: "...";          /* three dots in a row */
+  position: absolute;
+  left: 100%;              /* start right after the word “Loading” */
+  top: 0;
+  overflow: hidden;        /* hide the “extra” dots */
+  white-space: nowrap;     
+  width: 0;                /* zero width to start */
+  animation: dots 1s steps(4,end) infinite;
 }
 
 @keyframes dots {
@@ -214,7 +217,7 @@ body {
 .toggle-switch {
   appearance: none;
   width: 3rem;
-  height: 1.5rem;
+  height: 2rem;
   background: rgba(255,255,255,0.3);
   border-radius: 1rem;
   position: relative;
@@ -245,7 +248,7 @@ body {
 /* bigger “×” in corner of panel */
 .close-btn {
   position: absolute;
-  top: 1rem;
+  top: 0rem;
   right: 1rem;
   width: clamp(40px, 5vw, 60px);
   height: clamp(40px, 5vw, 60px);
@@ -254,7 +257,9 @@ body {
   color: #fff;
   font-size: clamp(24px, 3vw, 36px);
   cursor: pointer;
-}/* keep the toggle where it belongs */
+}
+
+/* keep the toggle where it belongs */
 .top-menu {
   position: absolute;
   top: 2%;
@@ -272,73 +277,10 @@ body {
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
 }
+
 .top-menu .options-toggle:hover {
   background: var(--btn-hover);
   transform: scale(1.1);
-}
-
-/* **center** the panel in the screen */
-.options-menu {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: var(--menu-width);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--gap);
-  background: var(--bg);
-  backdrop-filter: blur(8px);
-  padding: var(--gap);
-  border-radius: 1rem;
-  border: 1px solid var(--border);
-  box-shadow: 0 6px 20px rgba(0 0 0 / 0.25);
-  z-index: 10000;
-  align-items: center;
-}
-
-/* each line: big icon + text */
-.option-row {
-  display: contents;
-}
-
-.option-btn {
-  width: var(--btn-size);
-  height: var(--btn-size);
-  background: var(--btn-bg);
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-.option-btn:hover {
-  background: var(--btn-hover);
-  transform: scale(1.1);
-}
-
-.option-label {
-  color: #fff;
-  font-size: var(--font-size);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-  white-space: nowrap;
-  text-align: left;
-}
-
-/* bigger “×” in corner of panel */
-.close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: clamp(40px, 5vw, 60px);
-  height: clamp(40px, 5vw, 60px);
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: clamp(24px, 3vw, 36px);
-  cursor: pointer;
 }
 
 .welcome-screen,
