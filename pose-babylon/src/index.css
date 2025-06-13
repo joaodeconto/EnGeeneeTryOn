@@ -137,8 +137,8 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   width: var(--menu-width);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: var(--gap);
   background: var(--bg);
   backdrop-filter: blur(8px);
@@ -147,13 +147,12 @@ body {
   border: 1px solid var(--border);
   box-shadow: 0 6px 20px rgba(0 0 0 / 0.25);
   z-index: 10000;
+  align-items: center;
 }
 
 /* each line: big icon + text */
 .option-row {
-  display: flex;
-  align-items: center;
-  gap: var(--gap);
+  display: contents;
 }
 
 /* stack label and button vertically */
@@ -192,6 +191,7 @@ body {
   font-size: var(--font-size);
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
   white-space: nowrap;
+  text-align: left;
 }
 
 .option-input {
@@ -202,6 +202,44 @@ body {
   border: 1px solid var(--border);
   background: rgba(255,255,255,0.1);
   color: #fff;
+}
+
+.option-control {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-switch {
+  appearance: none;
+  width: 3rem;
+  height: 1.5rem;
+  background: rgba(255,255,255,0.3);
+  border-radius: 1rem;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+}
+
+.toggle-switch::before {
+  content: "";
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch:checked {
+  background: rgba(0,0,0,0.6);
+}
+
+.toggle-switch:checked::before {
+  transform: translateX(1.5rem);
 }
 
 /* bigger “×” in corner of panel */
@@ -246,8 +284,8 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   width: var(--menu-width);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: var(--gap);
   background: var(--bg);
   backdrop-filter: blur(8px);
@@ -256,13 +294,12 @@ body {
   border: 1px solid var(--border);
   box-shadow: 0 6px 20px rgba(0 0 0 / 0.25);
   z-index: 10000;
+  align-items: center;
 }
 
 /* each line: big icon + text */
 .option-row {
-  display: flex;
-  align-items: center;
-  gap: var(--gap);
+  display: contents;
 }
 
 .option-btn {
@@ -287,6 +324,7 @@ body {
   font-size: var(--font-size);
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
   white-space: nowrap;
+  text-align: left;
 }
 
 /* bigger “×” in corner of panel */
