@@ -15,7 +15,7 @@
 
     <div id="loading-screen" class="full-screen loading-screen">
         <img class="loading-logo" src="./UI/MC_logo_1_2.png" alt="Scan icon" />
-        <div class="loading-text">Loading...</div>
+        <div id="loading-text" class="loading-text">Loading</div>
     </div>
 
     <video id="video" autoplay muted playsinline style="display: none;"></video>
@@ -72,6 +72,18 @@
             <div class="option-item">
                 <span class="button-label">Export Smiles</span>
                 <button id="export-csv" class="option-btn">Export Smiles</button>
+            </div>
+        </div>
+        <div class="option-row">
+            <div class="option-item">
+                <span class="button-label">Music</span>
+                <button id="music-toggle" class="option-btn">Toggle Music</button>
+            </div>
+        </div>
+        <div class="option-row">
+            <div class="option-item">
+                <span class="button-label">No Pose Delay (s)</span>
+                <input id="no-pose-delay" class="option-input" type="number" min="1" value="5" />
             </div>
         </div>
     </div>

@@ -139,6 +139,24 @@ function bindOptionsClose() {
   ui.optionsClose.onclick = () => ui.toggleOptions();
 }
 
+function bindMusicToggle() {
+  ui.musicToggle.onclick = () => {
+    audioManager.playClickSfx();
+    audioManager.toggleMute();
+  };
+}
+
+function bindNoPoseDelay() {
+  ui.noPoseDelayInput.onchange = () => {
+    const sec = parseFloat(ui.noPoseDelayInput.value);
+    if (!isNaN(sec) && sec > 0) {
+      avatarRenderer.noPoseDelay = sec * 1000;
+    }
+  };
+  // set initial value from renderer
+  ui.noPoseDelayInput.value = String(avatarRenderer.noPoseDelay / 1000);
+}
+
 
 async function main() {
 
@@ -152,6 +170,8 @@ async function main() {
   bindTransposeButton();
   bindOptionsToggle();
   bindOptionsClose();
+  bindMusicToggle();
+  bindNoPoseDelay();
   bindExportButton();
   bindCarousel(
     ui.outfitButtons,
